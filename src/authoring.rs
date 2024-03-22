@@ -41,10 +41,7 @@ fn draw_cursor(
 
     // Find the closest placement
 
-    // TODO we just need a single value with the minimum distance. No need to
-    // allocate and sort a vec.
-
-    let mut holes = vec![];
+    let mut min: Option<(u32, Vec2, f32)> = None;
 
     for (id, placement) in &kilter.placements {
         if placement.layout_id != 1 {
@@ -61,16 +58,18 @@ fn draw_cursor(
 
         let d_squared = pos.distance_squared(cursor.truncate());
 
-        if d_squared < PICKING_THRESHOLD {
-            holes.push((id, pos, d_squared));
+        if min.map_or(true, |(_, _, min_d_squared)| d_squared < min_d_squared) {
+            min = Some((*id, pos, d_squared));
         }
     }
 
-    holes.sort_by(|a, b| a.2.partial_cmp(&b.2).unwrap());
-
-    let Some((_placement_id, pos, _)) = holes.first() else {
+    let Some((_placement_id, pos, d_squared)) = min else {
         return;
     };
+
+    if d_squared > PICKING_THRESHOLD {
+        return;
+    }
 
     gizmos.circle(
         board.translation() + pos.extend(0.) - board.forward() * 0.01,
