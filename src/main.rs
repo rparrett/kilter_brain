@@ -54,9 +54,9 @@ fn main() {
     };
     #[cfg(not(target_arch = "wasm32"))]
     let kd = {
-        let mut kd = KilterData::from_sqlite("../kilter-brain-data/db.sqlite3").unwrap();
-        kd.json_update_file("../kilter-brain-data/kilter-nouser-343.json");
-        kd.json_update_file("../kilter-brain-data/kilter-user-343.json");
+        let mut kd = KilterData::from_sqlite("../kilter_brain-data/db.sqlite3").unwrap();
+        kd.json_update_file("../kilter_brain-data/kilter-nouser-343.json");
+        kd.json_update_file("../kilter_brain-data/kilter-user-343.json");
         kd
     };
 
