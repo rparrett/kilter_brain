@@ -3,9 +3,8 @@
 ## TODO
 
 - Automatic updates from API
-- Click to toggle holds
-- Consider preprocessing the sqlite into json -- sqlite doesn't seem wasm32-unknown-unknown compatible.
-  - We would likely end up loading route data over our own JSON api anyway, eventually.
+- Add route authoring
+- Let users change the angle of the board
 - web: Figure out how to handle pastes when the canvas is focused
 
 ## To get a recent APK
