@@ -1,4 +1,6 @@
-use bevy::{prelude::*, utils::Uuid};
+use std::f32::consts::PI;
+
+use bevy::{pbr::CascadeShadowConfigBuilder, prelude::*, utils::Uuid};
 use bevy_inspector_egui::quick::ResourceInspectorPlugin;
 
 use combine::EasyParser;
@@ -83,15 +85,26 @@ fn setup_scene(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    // light
-    commands.spawn(PointLightBundle {
-        point_light: PointLight {
-            // TODO default shadow settings look awful, despite the scene being at
-            // the assumed 1 unit = 1 meter scale. Why is that?
+    // directional 'sun' light
+    commands.spawn(DirectionalLightBundle {
+        directional_light: DirectionalLight {
+            illuminance: light_consts::lux::OVERCAST_DAY,
             shadows_enabled: true,
             ..default()
         },
-        transform: Transform::from_xyz(4.0, 8.0, 4.0),
+        transform: Transform {
+            rotation: Quat::from_euler(EulerRot::XYZ, -0.9, 0.3, 0.0),
+            ..default()
+        },
+        // The default cascade config is designed to handle large scenes.
+        // As this example has a much smaller world, we can tighten the shadow
+        // bounds for better visual quality.
+        cascade_shadow_config: CascadeShadowConfigBuilder {
+            first_cascade_far_bound: 4.0,
+            maximum_distance: 10.0,
+            ..default()
+        }
+        .into(),
         ..default()
     });
 
