@@ -163,7 +163,7 @@ impl KilterData {
             .filter(|file_name| file_name.ends_with(".json"))
         {
             let file_path = path.as_ref().join(file);
-            self.json_update_file(file_path);
+            self.json_update_file(file_path)?;
         }
         Ok(())
     }
