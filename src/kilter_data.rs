@@ -182,7 +182,7 @@ impl KilterData {
             let placements = placements.as_array().unwrap();
             for placement_val in placements {
                 let placement: Placement = serde_json::from_value(placement_val.clone()).unwrap();
-                self.placements.insert(placement.id.clone(), placement);
+                self.placements.insert(placement.id, placement);
             }
         }
 
@@ -190,7 +190,7 @@ impl KilterData {
             let holes = holes.as_array().unwrap();
             for hole_val in holes {
                 let hole: Hole = serde_json::from_value(hole_val.clone()).unwrap();
-                self.holes.insert(hole.id.clone(), hole);
+                self.holes.insert(hole.id, hole);
             }
         }
 
@@ -200,7 +200,7 @@ impl KilterData {
                 let placement_role: PlacementRole =
                     serde_json::from_value(placement_role_val.clone()).unwrap();
                 self.placement_roles
-                    .insert(placement_role.id.clone(), placement_role);
+                    .insert(placement_role.id, placement_role);
             }
         }
     }
