@@ -209,10 +209,6 @@ fn show_climb(
 
     let board = boards.single();
 
-    for entity in &indicators {
-        commands.entity(entity).despawn();
-    }
-
     let Some(climb) = kilter
         .climbs
         .get(&selected.0)
@@ -221,11 +217,15 @@ fn show_climb(
         return;
     };
 
-    let result = placements_and_roles()
-        .easy_parse(climb.frames.as_str())
-        .unwrap();
+    let Ok((placements, _)) = placements_and_roles().easy_parse(climb.frames.as_str()) else {
+        return;
+    };
 
-    for (placement_id, role_id) in result.0 {
+    for entity in &indicators {
+        commands.entity(entity).despawn();
+    }
+
+    for (placement_id, role_id) in placements {
         let Some(placement) = kilter.placements.get(&placement_id) else {
             warn!("missing placement: {}", placement_id);
             continue;
@@ -308,17 +308,24 @@ fn on_paste(
         let frames = parts.next().unwrap();
         let name = parts.next().unwrap_or("Pasted Climb");
 
-        kilter.climbs.insert(
-            id.clone(),
-            Climb {
-                uuid: id.clone(),
-                setter_username: "User".to_string(),
-                name: name.to_string(),
-                frames: frames.to_string(),
-                ..default()
-            },
-        );
-
-        selected.0 = id;
+        match placements_and_roles().easy_parse(frames) {
+            Ok(_) => {
+                kilter.climbs.insert(
+                    id.clone(),
+                    Climb {
+                        uuid: id.clone(),
+                        setter_username: "User".to_string(),
+                        name: name.to_string(),
+                        frames: frames.to_string(),
+                        ..default()
+                    },
+                );
+                selected.0 = id;
+            }
+            Err(e) => {
+                warn!("{:?}", e);
+                return;
+            }
+        }
     }
 }
