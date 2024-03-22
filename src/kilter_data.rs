@@ -274,6 +274,7 @@ pub struct Climb {
     pub angle: Option<u32>,
 }
 
+// TODO can we parse into a HashMap<u32, u32>?
 pub fn placements_and_roles<'a, I>() -> impl Parser<I, Output = Vec<(u32, u32)>>
 where
     I: RangeStream<Token = char, Range = &'a str>,

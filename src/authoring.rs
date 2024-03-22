@@ -41,6 +41,9 @@ fn draw_cursor(
 
     // Find the closest placement
 
+    // TODO we just need a single value with the minimum distance. No need to
+    // allocate and sort a vec.
+
     let mut holes = vec![];
 
     for (id, placement) in &kilter.placements {
