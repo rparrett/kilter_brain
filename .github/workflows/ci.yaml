@@ -30,7 +30,7 @@ jobs:
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Install Dependencies
-        run: sudo apt-get update; sudo apt-get install --no-install-recommends libx11-dev libasound2-dev libudev-dev libxkbcommon-x11-0
+        run: sudo apt-get update; sudo apt-get install --no-install-recommends libx11-dev libasound2-dev libxcb-xfixes0-dev libxkbcommon-dev
       - name: Run cargo test
         run: cargo test --all-features
 
