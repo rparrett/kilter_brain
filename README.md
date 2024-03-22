@@ -7,6 +7,7 @@
 - Let users change the angle of the board
 - web: Figure out how to handle pastes when the canvas is focused
 - Make frame parser more permissive
+- Let users search the routes database for other climbs with the selected holds
 
 ## To get a recent APK
 
