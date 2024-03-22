@@ -3,7 +3,7 @@ use serde_json::Value;
 use std::collections::HashMap;
 use std::io::Read;
 #[cfg(not(target_arch = "wasm32"))]
-use std::{fs::File, io::BufReader, path::Path};
+use std::{fs::read_dir, fs::File, io, io::BufReader, path::Path};
 
 use combine::error::ParseError;
 use combine::stream::RangeStream;
@@ -156,10 +156,24 @@ impl KilterData {
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn json_update_file<P: AsRef<Path>>(&mut self, path: P) {
-        let file = File::open(path).unwrap();
+    pub fn json_update_files<P: AsRef<Path>>(&mut self, path: P) -> io::Result<()> {
+        for file in read_dir(&path)?
+            .filter_map(Result::ok)
+            .filter_map(|entry| entry.file_name().into_string().ok())
+            .filter(|file_name| file_name.ends_with(".json"))
+        {
+            let file_path = path.as_ref().join(file);
+            self.json_update_file(file_path);
+        }
+        Ok(())
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn json_update_file<P: AsRef<Path>>(&mut self, path: P) -> io::Result<()> {
+        let file = File::open(path)?;
         let reader = BufReader::new(file);
         self.json_update_reader(reader);
+        Ok(())
     }
 
     pub fn json_update_reader<R: Read>(&mut self, reader: R) {

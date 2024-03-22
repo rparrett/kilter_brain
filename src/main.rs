@@ -55,8 +55,9 @@ fn main() {
     #[cfg(not(target_arch = "wasm32"))]
     let kd = {
         let mut kd = KilterData::from_sqlite("../kilter_brain_data/db.sqlite3").unwrap();
-        kd.json_update_file("../kilter_brain_data/kilter-nouser-343.json");
-        kd.json_update_file("../kilter_brain_data/kilter-user-343.json");
+        if let Err(e) = kd.json_update_files("../kilter_brain_data/api_json") {
+            eprintln!("Failed to load JSON updates. {:?}", e);
+        };
         kd
     };
 
