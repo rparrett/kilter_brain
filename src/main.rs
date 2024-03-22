@@ -25,7 +25,10 @@ struct SelectedClimb(String);
 struct Board;
 
 #[derive(Component)]
-struct HoldIndicator;
+struct PlacementIndicator {
+    placement_id: u32,
+    role_id: u32,
+}
 
 #[derive(Reflect, Resource)]
 #[reflect(Resource)]
@@ -76,7 +79,10 @@ fn main() {
             bevy_inspector_egui::quick::WorldInspectorPlugin::default(),
         ))
         .add_systems(Startup, (setup_scene, setup_ui))
-        .add_systems(Update, (show_climb, next_climb, on_paste))
+        .add_systems(
+            Update,
+            (show_climb, next_climb, on_paste, update_placement_indicator),
+        )
         .run();
 }
 
@@ -210,10 +216,8 @@ fn show_climb(
     mut commands: Commands,
     selected: Res<SelectedClimb>,
     kilter: Res<KilterData>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
     settings: Res<KilterSettings>,
-    indicators: Query<Entity, With<HoldIndicator>>,
+    indicators: Query<Entity, With<PlacementIndicator>>,
     mut texts: Query<&mut Text>,
     boards: Query<Entity, With<Board>>,
 ) {
@@ -236,67 +240,18 @@ fn show_climb(
     };
 
     for entity in &indicators {
-        commands.entity(entity).despawn();
+        commands.entity(entity).despawn_recursive();
     }
 
     for (placement_id, role_id) in placements {
-        let Some(placement) = kilter.placements.get(&placement_id) else {
-            warn!("missing placement: {}", placement_id);
-            continue;
-        };
-        let Some(role) = kilter.placement_roles.get(&role_id) else {
-            warn!("missing role: {}", role_id);
-            continue;
-        };
-        let Some(hole) = kilter.holes.get(&placement.hole_id) else {
-            warn!("missing hole: {}", placement.hole_id);
-            continue;
-        };
-
-        let pos = Vec2::new(hole.x as f32, hole.y as f32) * settings.scale + settings.offset;
-
-        let color = Color::hex(&role.led_color).unwrap();
-
-        let outline_material = StandardMaterial {
-            base_color: Color::BLACK,
-            unlit: true,
-            ..default()
-        };
-
-        // Outline
-        let outline = commands
-            .spawn((
-                PbrBundle {
-                    mesh: meshes.add(Circle::new(0.04)),
-                    material: materials.add(outline_material),
-                    transform: Transform::from_translation(pos.extend(0.0001)),
-                    ..default()
-                },
-                HoldIndicator,
-            ))
+        let indicator = commands
+            .spawn(PlacementIndicator {
+                placement_id,
+                role_id,
+            })
             .id();
 
-        let hold_material = StandardMaterial {
-            base_color: color,
-            unlit: true,
-            ..default()
-        };
-
-        // Hold
-        let hold = commands
-            .spawn((
-                PbrBundle {
-                    mesh: meshes.add(Circle::new(0.03)),
-                    material: materials.add(hold_material),
-                    transform: Transform::from_translation(pos.extend(0.0002)),
-                    ..default()
-                },
-                HoldIndicator,
-            ))
-            .id();
-
-        commands.entity(board).add_child(outline);
-        commands.entity(board).add_child(hold);
+        commands.entity(board).add_child(indicator);
     }
 
     let mut text = texts.single_mut();
@@ -340,6 +295,83 @@ fn on_paste(
                 warn!("{:?}", e);
                 return;
             }
+        }
+    }
+}
+
+fn update_placement_indicator(
+    mut commands: Commands,
+    mut query: Query<(Entity, Ref<PlacementIndicator>), Changed<PlacementIndicator>>,
+    kilter: Res<KilterData>,
+    settings: Res<KilterSettings>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut material_query: Query<&mut Handle<StandardMaterial>>,
+) {
+    for (entity, indicator) in &mut query {
+        let Some(placement) = kilter.placements.get(&indicator.placement_id) else {
+            warn!("missing placement: {}", indicator.placement_id);
+            continue;
+        };
+        let Some(role) = kilter.placement_roles.get(&indicator.role_id) else {
+            warn!("missing role: {}", indicator.role_id);
+            continue;
+        };
+        let Some(hole) = kilter.holes.get(&placement.hole_id) else {
+            warn!("missing hole: {}", placement.hole_id);
+            continue;
+        };
+
+        if indicator.is_added() {
+            let outline_material = materials.add(StandardMaterial {
+                base_color: Color::BLACK,
+                unlit: true,
+                ..default()
+            });
+
+            let pos = Vec2::new(hole.x as f32, hole.y as f32) * settings.scale + settings.offset;
+
+            let color = Color::hex(&role.led_color).unwrap();
+
+            // Outline
+            let outline = commands
+                .spawn((PbrBundle {
+                    mesh: meshes.add(Circle::new(0.04)),
+                    material: outline_material.clone(),
+                    transform: Transform::from_translation(Vec3::Z * -0.0001),
+                    ..default()
+                },))
+                .id();
+
+            let indicator_material = StandardMaterial {
+                base_color: color,
+                unlit: true,
+                ..default()
+            };
+
+            commands.entity(entity).insert(PbrBundle {
+                mesh: meshes.add(Circle::new(0.03)),
+                material: materials.add(indicator_material),
+                transform: Transform::from_translation(pos.extend(0.0001)),
+                ..default()
+            });
+
+            commands.entity(entity).add_child(outline);
+        } else {
+            let Ok(mut mat) = material_query.get_mut(entity) else {
+                continue;
+            };
+
+            // TODO initialize these material handles in a resource and reuse
+
+            let color = Color::hex(&role.led_color).unwrap();
+            let indicator_material = materials.add(StandardMaterial {
+                base_color: color,
+                unlit: true,
+                ..default()
+            });
+
+            *mat = indicator_material;
         }
     }
 }
