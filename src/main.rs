@@ -1,3 +1,4 @@
+use authoring::AuthoringPlugin;
 use bevy::{pbr::CascadeShadowConfigBuilder, prelude::*, utils::Uuid};
 use bevy_inspector_egui::quick::ResourceInspectorPlugin;
 
@@ -7,6 +8,7 @@ use clipboard::ClipboardPlugin;
 use human::HumanPlugin;
 use kilter_data::{placements_and_roles, Climb, KilterData};
 
+mod authoring;
 #[cfg_attr(not(target_arch = "wasm32"), path = "native_clipboard.rs")]
 #[cfg_attr(target_arch = "wasm32", path = "wasm_clipboard.rs")]
 mod clipboard;
@@ -68,7 +70,7 @@ fn main() {
         .init_resource::<KilterSettings>()
         .register_type::<KilterSettings>()
         .add_plugins(DefaultPlugins)
-        .add_plugins((ClipboardPlugin, HumanPlugin))
+        .add_plugins((ClipboardPlugin, HumanPlugin, AuthoringPlugin))
         .add_plugins((
             ResourceInspectorPlugin::<KilterSettings>::default(),
             bevy_inspector_egui::quick::WorldInspectorPlugin::default(),

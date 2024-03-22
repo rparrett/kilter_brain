@@ -220,7 +220,7 @@ impl KilterData {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct Hole {
     pub id: u32,
     pub product_id: u32,
@@ -230,7 +230,7 @@ pub struct Hole {
     pub mirrored_hole_id: u32,
     pub mirror_group: u32,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct Placement {
     pub id: u32,
     pub layout_id: u32,
@@ -240,7 +240,7 @@ pub struct Placement {
     //pub rotation: u32,
     pub default_placement_role_id: Option<u32>,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct PlacementRole {
     pub id: u32,
     pub product_id: u32,
@@ -253,7 +253,7 @@ pub struct PlacementRole {
     pub screen_color: String,
 }
 
-#[derive(Deserialize, Default)]
+#[derive(Deserialize, Default, Debug)]
 pub struct Climb {
     pub uuid: String,
     pub name: String,
