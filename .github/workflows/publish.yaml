@@ -1,0 +1,38 @@
+name: Build and deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: install wasm-bindgen-cli
+        run: |
+          cargo install wasm-bindgen-cli
+
+      - name: Build
+        run: |
+          cargo build --release --target wasm32-unknown-unknown
+
+      - name: Prepare package
+        run: |
+          wasm-bindgen --no-typescript --out-name bevy_game --out-dir wasm --target web target/wasm32-unknown-unknown/release/${{ env.binary }}.wasm
+          cp -r assets wasm/ || true # Ignore failures when source or dest don't exist
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: ./wasm
+          retention-days: 1
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
