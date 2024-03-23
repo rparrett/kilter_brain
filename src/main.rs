@@ -2,18 +2,24 @@ use authoring::AuthoringPlugin;
 use bevy::{pbr::CascadeShadowConfigBuilder, prelude::*, utils::Uuid};
 use bevy_inspector_egui::quick::ResourceInspectorPlugin;
 
+use button::ButtonPlugin;
 use combine::EasyParser;
 
 use clipboard::ClipboardPlugin;
 use human::HumanPlugin;
 use kilter_data::{placements_and_roles, Climb, KilterData};
+use panels::PanelsPlugin;
 
 mod authoring;
+mod button;
 #[cfg_attr(not(target_arch = "wasm32"), path = "native_clipboard.rs")]
 #[cfg_attr(target_arch = "wasm32", path = "wasm_clipboard.rs")]
 mod clipboard;
 mod human;
 mod kilter_data;
+mod palette;
+mod panels;
+mod theme;
 
 #[derive(Event)]
 struct PasteEvent(String);
@@ -73,12 +79,18 @@ fn main() {
         .init_resource::<KilterSettings>()
         .register_type::<KilterSettings>()
         .add_plugins(DefaultPlugins)
-        .add_plugins((ClipboardPlugin, HumanPlugin, AuthoringPlugin))
+        .add_plugins((
+            ClipboardPlugin,
+            HumanPlugin,
+            AuthoringPlugin,
+            ButtonPlugin,
+            PanelsPlugin,
+        ))
         .add_plugins((
             ResourceInspectorPlugin::<KilterSettings>::default(),
             bevy_inspector_egui::quick::WorldInspectorPlugin::default(),
         ))
-        .add_systems(Startup, (setup_scene, setup_ui))
+        .add_systems(Startup, setup_scene)
         .add_systems(
             Update,
             (show_climb, next_climb, on_paste, update_placement_indicator),
@@ -150,42 +162,6 @@ fn setup_scene(
     });
 }
 
-fn setup_ui(mut commands: Commands) {
-    let container = commands
-        .spawn(NodeBundle {
-            style: Style {
-                position_type: PositionType::Absolute,
-                bottom: Val::Px(0.),
-                left: Val::Px(0.),
-                padding: UiRect::all(Val::Px(12.)),
-                ..default()
-            },
-            background_color: Color::rgba(0., 0., 0., 0.3).into(),
-            ..default()
-        })
-        .id();
-
-    let sections = std::iter::repeat_with(|| {
-        [
-            TextSection {
-                value: "".to_string(),
-                style: TextStyle::default(),
-            },
-            TextSection {
-                value: "\n".to_string(),
-                style: TextStyle::default(),
-            },
-        ]
-    })
-    .take(7)
-    .flatten()
-    .collect::<Vec<_>>();
-
-    let text = commands.spawn(TextBundle::from_sections(sections)).id();
-
-    commands.entity(container).add_child(text);
-}
-
 fn next_climb(
     keys: Res<ButtonInput<KeyCode>>,
     mut selected: ResMut<SelectedClimb>,
@@ -218,7 +194,6 @@ fn show_climb(
     kilter: Res<KilterData>,
     settings: Res<KilterSettings>,
     indicators: Query<Entity, With<PlacementIndicator>>,
-    mut texts: Query<&mut Text>,
     boards: Query<Entity, With<Board>>,
 ) {
     if !selected.is_added() && !selected.is_changed() && !settings.is_changed() {
@@ -253,15 +228,6 @@ fn show_climb(
 
         commands.entity(board).add_child(indicator);
     }
-
-    let mut text = texts.single_mut();
-    text.sections[0].value.clone_from(&climb.uuid);
-    text.sections[2].value.clone_from(&climb.name);
-    text.sections[4].value.clone_from(&climb.setter_username);
-    text.sections[6].value.clone_from(&climb.description);
-    text.sections[8].value = format!("Angle: {:?}", climb.angle);
-    text.sections[10].value = format!("Draft: {:?}", climb.is_draft);
-    text.sections[12].value = format!("Listed: {:?}", climb.is_listed);
 }
 
 fn on_paste(
