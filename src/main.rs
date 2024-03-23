@@ -1,10 +1,5 @@
 use authoring::AuthoringPlugin;
-use bevy::{
-    ecs::system::SystemParam,
-    pbr::CascadeShadowConfigBuilder,
-    prelude::*,
-    utils::{HashMap, Uuid},
-};
+use bevy::{pbr::CascadeShadowConfigBuilder, prelude::*, utils::Uuid};
 use bevy_inspector_egui::quick::ResourceInspectorPlugin;
 
 use button::ButtonPlugin;
@@ -14,6 +9,7 @@ use clipboard::ClipboardPlugin;
 use human::HumanPlugin;
 use kilter_data::{placements_and_roles, Climb, KilterData};
 use panels::PanelsPlugin;
+use placement_indicator::{PlacementIndicator, PlacementIndicatorPlugin};
 
 mod authoring;
 mod button;
@@ -24,6 +20,7 @@ mod human;
 mod kilter_data;
 mod palette;
 mod panels;
+mod placement_indicator;
 mod theme;
 
 #[derive(Event)]
@@ -34,52 +31,6 @@ struct SelectedClimb(String);
 
 #[derive(Component)]
 struct Board;
-
-#[derive(Resource)]
-struct IndicatorHandles {
-    materials: HashMap<String, Handle<StandardMaterial>>,
-    mesh: Handle<Mesh>,
-    outline_mesh: Handle<Mesh>,
-}
-impl FromWorld for IndicatorHandles {
-    fn from_world(world: &mut World) -> Self {
-        let mut meshes = world.resource_mut::<Assets<Mesh>>();
-
-        Self {
-            mesh: meshes.add(Circle::new(0.03)),
-            outline_mesh: meshes.add(Circle::new(0.04)),
-            materials: HashMap::default(),
-        }
-    }
-}
-#[derive(SystemParam)]
-struct IndicatorHandlesParam<'w> {
-    handles: ResMut<'w, IndicatorHandles>,
-    materials: ResMut<'w, Assets<StandardMaterial>>,
-}
-impl IndicatorHandlesParam<'_> {
-    fn get_material(&mut self, color: &str) -> Handle<StandardMaterial> {
-        if let Some(mat) = self.handles.materials.get(color) {
-            return mat.clone();
-        };
-
-        let base_color = Color::hex(color).unwrap();
-
-        let material = StandardMaterial {
-            base_color,
-            unlit: true,
-            ..default()
-        };
-
-        self.materials.add(material)
-    }
-}
-
-#[derive(Component)]
-struct PlacementIndicator {
-    placement_id: u32,
-    role_id: u32,
-}
 
 #[derive(Reflect, Resource)]
 #[reflect(Resource)]
@@ -127,17 +78,14 @@ fn main() {
             AuthoringPlugin,
             ButtonPlugin,
             PanelsPlugin,
+            PlacementIndicatorPlugin,
         ))
         .add_plugins((
             ResourceInspectorPlugin::<KilterSettings>::default(),
             bevy_inspector_egui::quick::WorldInspectorPlugin::default(),
         ))
         .add_systems(Startup, setup_scene)
-        .add_systems(
-            Update,
-            (show_climb, next_climb, on_paste, update_placement_indicator),
-        )
-        .init_resource::<IndicatorHandles>()
+        .add_systems(Update, (show_climb, next_climb, on_paste))
         .init_resource::<SelectedClimb>()
         .init_resource::<KilterSettings>()
         .register_type::<KilterSettings>()
@@ -307,60 +255,6 @@ fn on_paste(
                 warn!("{:?}", e);
                 return;
             }
-        }
-    }
-}
-
-fn update_placement_indicator(
-    mut commands: Commands,
-    mut query: Query<(Entity, Ref<PlacementIndicator>), Changed<PlacementIndicator>>,
-    kilter: Res<KilterData>,
-    settings: Res<KilterSettings>,
-
-    mut material_query: Query<&mut Handle<StandardMaterial>>,
-    mut handles: IndicatorHandlesParam,
-) {
-    for (entity, indicator) in &mut query {
-        let Some(placement) = kilter.placements.get(&indicator.placement_id) else {
-            warn!("missing placement: {}", indicator.placement_id);
-            continue;
-        };
-        let Some(role) = kilter.placement_roles.get(&indicator.role_id) else {
-            warn!("missing role: {}", indicator.role_id);
-            continue;
-        };
-        let Some(hole) = kilter.holes.get(&placement.hole_id) else {
-            warn!("missing hole: {}", placement.hole_id);
-            continue;
-        };
-
-        if indicator.is_added() {
-            let pos = Vec2::new(hole.x as f32, hole.y as f32) * settings.scale + settings.offset;
-
-            // Outline
-            let outline = commands
-                .spawn((PbrBundle {
-                    mesh: handles.handles.outline_mesh.clone(),
-                    material: handles.get_material("#000000"),
-                    transform: Transform::from_translation(Vec3::Z * -0.0001),
-                    ..default()
-                },))
-                .id();
-
-            commands.entity(entity).insert(PbrBundle {
-                mesh: handles.handles.mesh.clone(),
-                material: handles.get_material(&role.led_color),
-                transform: Transform::from_translation(pos.extend(0.0002)),
-                ..default()
-            });
-
-            commands.entity(entity).add_child(outline);
-        } else {
-            let Ok(mut mat) = material_query.get_mut(entity) else {
-                continue;
-            };
-
-            *mat = handles.get_material(&role.led_color);
         }
     }
 }

@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 
-use crate::{kilter_data::KilterData, Board, KilterSettings, PlacementIndicator};
+use crate::{
+    kilter_data::KilterData, placement_indicator::PlacementIndicator, Board, KilterSettings,
+};
 
 pub struct AuthoringPlugin;
 

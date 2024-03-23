@@ -3,7 +3,8 @@ use bevy::{prelude::*, utils::Uuid};
 use crate::{
     button::button,
     kilter_data::{Climb, KilterData},
-    theme, PlacementIndicator, SelectedClimb,
+    placement_indicator::PlacementIndicator,
+    theme, SelectedClimb,
 };
 
 pub struct PanelsPlugin;
