@@ -1,5 +1,10 @@
 use authoring::AuthoringPlugin;
-use bevy::{pbr::CascadeShadowConfigBuilder, prelude::*, utils::Uuid};
+use bevy::{
+    ecs::system::SystemParam,
+    pbr::CascadeShadowConfigBuilder,
+    prelude::*,
+    utils::{HashMap, Uuid},
+};
 use bevy_inspector_egui::quick::ResourceInspectorPlugin;
 
 use button::ButtonPlugin;
@@ -29,6 +34,46 @@ struct SelectedClimb(String);
 
 #[derive(Component)]
 struct Board;
+
+#[derive(Resource)]
+struct IndicatorHandles {
+    materials: HashMap<String, Handle<StandardMaterial>>,
+    mesh: Handle<Mesh>,
+    outline_mesh: Handle<Mesh>,
+}
+impl FromWorld for IndicatorHandles {
+    fn from_world(world: &mut World) -> Self {
+        let mut meshes = world.resource_mut::<Assets<Mesh>>();
+
+        Self {
+            mesh: meshes.add(Circle::new(0.03)),
+            outline_mesh: meshes.add(Circle::new(0.04)),
+            materials: HashMap::default(),
+        }
+    }
+}
+#[derive(SystemParam)]
+struct IndicatorHandlesParam<'w> {
+    handles: ResMut<'w, IndicatorHandles>,
+    materials: ResMut<'w, Assets<StandardMaterial>>,
+}
+impl IndicatorHandlesParam<'_> {
+    fn get_material(&mut self, color: &str) -> Handle<StandardMaterial> {
+        if let Some(mat) = self.handles.materials.get(color) {
+            return mat.clone();
+        };
+
+        let base_color = Color::hex(color).unwrap();
+
+        let material = StandardMaterial {
+            base_color,
+            unlit: true,
+            ..default()
+        };
+
+        self.materials.add(material)
+    }
+}
 
 #[derive(Component)]
 struct PlacementIndicator {
@@ -75,9 +120,6 @@ fn main() {
     App::new()
         .insert_resource(kd)
         .add_event::<PasteEvent>()
-        .init_resource::<SelectedClimb>()
-        .init_resource::<KilterSettings>()
-        .register_type::<KilterSettings>()
         .add_plugins(DefaultPlugins)
         .add_plugins((
             ClipboardPlugin,
@@ -95,6 +137,10 @@ fn main() {
             Update,
             (show_climb, next_climb, on_paste, update_placement_indicator),
         )
+        .init_resource::<IndicatorHandles>()
+        .init_resource::<SelectedClimb>()
+        .init_resource::<KilterSettings>()
+        .register_type::<KilterSettings>()
         .run();
 }
 
@@ -270,9 +316,9 @@ fn update_placement_indicator(
     mut query: Query<(Entity, Ref<PlacementIndicator>), Changed<PlacementIndicator>>,
     kilter: Res<KilterData>,
     settings: Res<KilterSettings>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+
     mut material_query: Query<&mut Handle<StandardMaterial>>,
+    mut handles: IndicatorHandlesParam,
 ) {
     for (entity, indicator) in &mut query {
         let Some(placement) = kilter.placements.get(&indicator.placement_id) else {
@@ -289,35 +335,21 @@ fn update_placement_indicator(
         };
 
         if indicator.is_added() {
-            let outline_material = materials.add(StandardMaterial {
-                base_color: Color::BLACK,
-                unlit: true,
-                ..default()
-            });
-
             let pos = Vec2::new(hole.x as f32, hole.y as f32) * settings.scale + settings.offset;
-
-            let color = Color::hex(&role.led_color).unwrap();
 
             // Outline
             let outline = commands
                 .spawn((PbrBundle {
-                    mesh: meshes.add(Circle::new(0.04)),
-                    material: outline_material.clone(),
+                    mesh: handles.handles.outline_mesh.clone(),
+                    material: handles.get_material("#000000"),
                     transform: Transform::from_translation(Vec3::Z * -0.0001),
                     ..default()
                 },))
                 .id();
 
-            let indicator_material = StandardMaterial {
-                base_color: color,
-                unlit: true,
-                ..default()
-            };
-
             commands.entity(entity).insert(PbrBundle {
-                mesh: meshes.add(Circle::new(0.03)),
-                material: materials.add(indicator_material),
+                mesh: handles.handles.mesh.clone(),
+                material: handles.get_material(&role.led_color),
                 transform: Transform::from_translation(pos.extend(0.0002)),
                 ..default()
             });
@@ -328,16 +360,7 @@ fn update_placement_indicator(
                 continue;
             };
 
-            // TODO initialize these material handles in a resource and reuse
-
-            let color = Color::hex(&role.led_color).unwrap();
-            let indicator_material = materials.add(StandardMaterial {
-                base_color: color,
-                unlit: true,
-                ..default()
-            });
-
-            *mat = indicator_material;
+            *mat = handles.get_material(&role.led_color);
         }
     }
 }
