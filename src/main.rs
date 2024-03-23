@@ -233,7 +233,7 @@ fn on_paste(
         let id = Uuid::new_v4().to_string();
 
         // Handle frame data, or "name\nframe_data"
-        let mut parts = event.0.rsplit('\n');
+        let mut parts = event.0.trim().rsplit('\n');
         let frames = parts.next().unwrap();
         let name = parts.next().unwrap_or("Pasted Climb");
 
