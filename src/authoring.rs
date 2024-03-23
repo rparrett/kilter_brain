@@ -106,6 +106,9 @@ fn cycle(
         return;
     }
 
+    // TODO consider monitoring the selected climb's frame data directly
+    // and updating the indicators in a separate system.
+
     let search = indicator_query
         .iter_mut()
         .find(|(_, p)| p.placement_id == selected);
