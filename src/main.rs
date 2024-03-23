@@ -318,7 +318,7 @@ fn update_placement_indicator(
             commands.entity(entity).insert(PbrBundle {
                 mesh: meshes.add(Circle::new(0.03)),
                 material: materials.add(indicator_material),
-                transform: Transform::from_translation(pos.extend(0.0001)),
+                transform: Transform::from_translation(pos.extend(0.0002)),
                 ..default()
             });
 
