@@ -9,7 +9,7 @@ pub struct AuthoringPlugin;
 impl Plugin for AuthoringPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<SelectedPlacement>();
-        app.add_systems(Update, (picking, cycle));
+        app.add_systems(Update, (picking, cycle, log_frames));
     }
 }
 
@@ -143,4 +143,21 @@ fn cycle(
             .id();
         commands.entity(entity).add_child(indicator);
     }
+}
+
+fn log_frames(
+    query: Query<&PlacementIndicator>,
+    changed_query: Query<(), Changed<PlacementIndicator>>,
+) {
+    // TODO this iterates the entire query. Use an event or something.
+    if changed_query.is_empty() {
+        return;
+    }
+
+    let s: String = query
+        .iter()
+        .map(|ind| format!("p{}r{}", ind.placement_id, ind.role_id))
+        .collect();
+
+    info!("{s}")
 }
