@@ -1,5 +1,7 @@
 use bevy::{ecs::system::SystemParam, prelude::*, utils::HashMap};
 
+use std::fmt::Display;
+
 use crate::{kilter_data::KilterData, KilterSettings};
 
 pub struct PlacementIndicatorPlugin;
@@ -55,6 +57,11 @@ impl IndicatorHandlesParam<'_> {
 pub struct PlacementIndicator {
     pub placement_id: u32,
     pub role_id: u32,
+}
+impl Display for PlacementIndicator {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "p{}r{}", self.placement_id, self.role_id)
+    }
 }
 
 fn update(

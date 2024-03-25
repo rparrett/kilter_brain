@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use std::fmt::Write;
+
 use crate::{
     kilter_data::KilterData, placement_indicator::PlacementIndicator, Board, KilterSettings,
 };
@@ -154,10 +156,10 @@ fn log_frames(
         return;
     }
 
-    let s: String = query
-        .iter()
-        .map(|ind| format!("p{}r{}", ind.placement_id, ind.role_id))
-        .collect();
+    let out: String = query.iter().fold(String::new(), |mut out, ind| {
+        let _ = write!(out, "{ind}");
+        out
+    });
 
-    info!("{s}")
+    info!("{out}");
 }
