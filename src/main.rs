@@ -230,6 +230,14 @@ fn on_paste(
     for event in events.read() {
         let id = Uuid::new_v4().to_string();
 
+        // TODO handle pastes with multiple climbs, either in the format
+        //
+        // p#r#p#r#\np#r#p#r#\np#r#p#r#
+        // or
+        // name\np#r#p#r#\nname\np#r#p#r#
+        //
+        // blocking: the p#r# parser needs to require at least one p#r#.
+
         // Handle frame data, or "name\nframe_data"
         let mut parts = event.0.trim().rsplit('\n');
         let frames = parts.next().unwrap();
