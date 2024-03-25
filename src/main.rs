@@ -7,7 +7,7 @@ use combine::EasyParser;
 
 use clipboard::ClipboardPlugin;
 use human::HumanPlugin;
-use kilter_data::{placements_and_roles, Climb, KilterData};
+use kilter_data::{parse_placements_and_roles, placements_and_roles, Climb, KilterData};
 use panels::PanelsPlugin;
 use placement_indicator::{PlacementIndicator, PlacementIndicatorPlugin};
 
@@ -235,32 +235,28 @@ fn on_paste(
         // p#r#p#r#\np#r#p#r#\np#r#p#r#
         // or
         // name\np#r#p#r#\nname\np#r#p#r#
-        //
-        // blocking: the p#r# parser needs to require at least one p#r#.
 
         // Handle frame data, or "name\nframe_data"
         let mut parts = event.0.trim().rsplit('\n');
         let frames = parts.next().unwrap();
         let name = parts.next().unwrap_or("Pasted Climb");
 
-        match placements_and_roles().easy_parse(frames) {
-            Ok(_) => {
-                kilter.climbs.insert(
-                    id.clone(),
-                    Climb {
-                        uuid: id.clone(),
-                        setter_username: "User".to_string(),
-                        name: name.to_string(),
-                        frames: frames.to_string(),
-                        ..default()
-                    },
-                );
-                selected.0 = id;
-            }
-            Err(e) => {
-                warn!("{:?}", e);
-                return;
-            }
+        if let Err(e) = parse_placements_and_roles(frames) {
+            // TODO add UI toast thing to show errors
+            warn!("{}", e);
+            return;
         }
+
+        kilter.climbs.insert(
+            id.clone(),
+            Climb {
+                uuid: id.clone(),
+                setter_username: "User".to_string(),
+                name: name.to_string(),
+                frames: frames.to_string(),
+                ..default()
+            },
+        );
+        selected.0 = id;
     }
 }

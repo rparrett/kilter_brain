@@ -1,3 +1,4 @@
+use combine::EasyParser;
 use serde_derive::Deserialize;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -7,7 +8,7 @@ use std::{fs::read_dir, fs::File, io, io::BufReader, path::Path};
 
 use combine::error::ParseError;
 use combine::stream::RangeStream;
-use combine::{many, many1, parser::char::digit, Parser};
+use combine::{many1, parser::char::digit, Parser};
 
 #[cfg(not(target_arch = "wasm32"))]
 use rusqlite::{Connection, Result};
@@ -288,5 +289,12 @@ where
     )
         .map(|(_, p, _, r)| (p.parse::<u32>().unwrap(), r.parse::<u32>().unwrap()));
 
-    many(placement_and_role)
+    many1(placement_and_role)
+}
+
+pub fn parse_placements_and_roles(input: &str) -> Result<Vec<(u32, u32)>, String> {
+    match placements_and_roles().easy_parse(combine::stream::position::Stream::new(input)) {
+        Ok((output, _remaining_input)) => Ok(output),
+        Err(err) => Err(format!("{}", err)),
+    }
 }
