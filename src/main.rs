@@ -228,7 +228,7 @@ fn on_paste(
     mut kilter: ResMut<KilterData>,
 ) {
     for event in events.read() {
-        let id = Uuid::new_v4().to_string();
+        let id = Uuid::new_v4().simple().to_string();
 
         // TODO handle pastes with multiple climbs, either in the format
         //
