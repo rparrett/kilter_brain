@@ -41,8 +41,8 @@ struct KilterSettings {
 impl Default for KilterSettings {
     fn default() -> Self {
         Self {
-            offset: Vec2::new(-0.3813 * 4.7, -0.4171 * 4.7),
-            scale: 0.00528 * 4.7,
+            offset: Vec2::new(-1.81, -1.96),
+            scale: 0.0251,
         }
     }
 }
@@ -127,15 +127,13 @@ fn setup_scene(
         ..default()
     });
 
-    let board_width = 1024. / 834. * BOARD_HEIGHT;
+    let board_width = 1477. / 1200. * BOARD_HEIGHT;
 
     commands.spawn((
         PbrBundle {
             mesh: meshes.add(Rectangle::new(board_width, BOARD_HEIGHT)),
             material: materials.add(StandardMaterial {
-                base_color_texture: Some(
-                    asset_server.load("KilterBoard16x12OriginalFullLayout_1024x1024.png"),
-                ),
+                base_color_texture: Some(asset_server.load("original-16x12.png")),
                 ..default()
             }),
             ..default()
