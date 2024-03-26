@@ -1,5 +1,8 @@
 use authoring::AuthoringPlugin;
-use bevy::{pbr::CascadeShadowConfigBuilder, prelude::*, utils::Uuid};
+use bevy::{
+    input::common_conditions::input_toggle_active, pbr::CascadeShadowConfigBuilder, prelude::*,
+    utils::Uuid,
+};
 use bevy_inspector_egui::quick::ResourceInspectorPlugin;
 
 use button::ButtonPlugin;
@@ -81,8 +84,10 @@ fn main() {
             PlacementIndicatorPlugin,
         ))
         .add_plugins((
-            ResourceInspectorPlugin::<KilterSettings>::default(),
-            bevy_inspector_egui::quick::WorldInspectorPlugin::default(),
+            ResourceInspectorPlugin::<KilterSettings>::default()
+                .run_if(input_toggle_active(false, KeyCode::Escape)),
+            bevy_inspector_egui::quick::WorldInspectorPlugin::default()
+                .run_if(input_toggle_active(false, KeyCode::Escape)),
         ))
         .add_systems(Startup, setup_scene)
         .add_systems(Update, (show_climb, next_climb, on_paste))
