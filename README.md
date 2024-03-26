@@ -10,6 +10,7 @@
   - [ ] Generate a brand-new climb
   - [ ] Suggest another hold
   - [ ] Finish the climb
+- Display difficulty, quality, ascents, etc in UI
 - web: provide an API for above
 - web: Figure out how to handle pastes when the canvas is focused
 - Make frame parser more permissive
