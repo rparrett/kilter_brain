@@ -58,7 +58,7 @@ fn setup_info_panel(mut commands: Commands) {
             },
         ]
     })
-    .take(7)
+    .take(8)
     .flatten()
     .collect::<Vec<_>>();
 
@@ -100,20 +100,23 @@ fn update_selected_climb(
 ) {
     let Some(climb) = kilter
         .climbs
-        .get(&selected.0)
-        .or_else(|| kilter.climbs.iter().next().map(|(_id, climb)| climb))
+        .iter()
+        .nth(selected.0)
+        .or_else(|| kilter.climbs.iter().next())
+        .map(|(_, climb)| climb)
     else {
         return;
     };
 
     let mut text = texts.single_mut();
-    text.sections[0].value.clone_from(&climb.uuid);
-    text.sections[2].value.clone_from(&climb.name);
-    text.sections[4].value.clone_from(&climb.setter_username);
-    text.sections[6].value.clone_from(&climb.description);
-    text.sections[8].value = format!("Angle: {:?}", climb.angle);
-    text.sections[10].value = format!("Draft: {:?}", climb.is_draft);
-    text.sections[12].value = format!("Listed: {:?}", climb.is_listed);
+    text.sections[0].value = format!("{}/{}", selected.0, kilter.climbs.len());
+    text.sections[2].value.clone_from(&climb.uuid);
+    text.sections[4].value.clone_from(&climb.name);
+    text.sections[6].value.clone_from(&climb.setter_username);
+    text.sections[8].value.clone_from(&climb.description);
+    text.sections[10].value = format!("Angle: {:?}", climb.angle);
+    text.sections[12].value = format!("Draft: {:?}", climb.is_draft);
+    text.sections[14].value = format!("Listed: {:?}", climb.is_listed);
 }
 
 fn clear_button(
@@ -146,6 +149,6 @@ fn new_button(
             },
         );
 
-        selected.0 = id;
+        selected.0 = kilter.climbs.len();
     }
 }

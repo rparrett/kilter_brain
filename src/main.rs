@@ -30,7 +30,7 @@ mod theme;
 struct PasteEvent(String);
 
 #[derive(Resource, Default)]
-struct SelectedClimb(String);
+struct SelectedClimb(usize);
 
 #[derive(Component)]
 struct Board;
@@ -90,7 +90,7 @@ fn main() {
                 .run_if(input_toggle_active(false, KeyCode::Escape)),
         ))
         .add_systems(Startup, setup_scene)
-        .add_systems(Update, (show_climb, next_climb, on_paste))
+        .add_systems(Update, (show_climb, prev_next_climb, on_paste))
         .init_resource::<SelectedClimb>()
         .init_resource::<KilterSettings>()
         .register_type::<KilterSettings>()
@@ -159,29 +159,23 @@ fn setup_scene(
     });
 }
 
-fn next_climb(
+fn prev_next_climb(
     keys: Res<ButtonInput<KeyCode>>,
     mut selected: ResMut<SelectedClimb>,
     kilter: Res<KilterData>,
 ) {
-    if keys.just_pressed(KeyCode::Space) {
-        let Some(mut next) = kilter.climbs.iter().next().map(|(id, _climb)| id) else {
-            return;
+    if keys.just_pressed(KeyCode::ArrowRight) {
+        selected.0 = if selected.0 == kilter.climbs.len() {
+            0
+        } else {
+            selected.0 + 1
         };
-
-        let mut iter = kilter.climbs.iter();
-
-        for (id, _climb) in iter.by_ref() {
-            if *id == selected.0 {
-                break;
-            }
-        }
-
-        if let Some((id, _climb)) = iter.next() {
-            next = id;
-        }
-
-        selected.0 = next.clone();
+    } else if keys.just_pressed(KeyCode::ArrowLeft) {
+        selected.0 = if selected.0 == 0 {
+            kilter.climbs.len()
+        } else {
+            selected.0 - 1
+        };
     }
 }
 
@@ -199,10 +193,13 @@ fn show_climb(
 
     let board = boards.single();
 
+    // Get selected or first climb
     let Some(climb) = kilter
         .climbs
-        .get(&selected.0)
-        .or_else(|| kilter.climbs.iter().next().map(|(_id, climb)| climb))
+        .iter()
+        .nth(selected.0)
+        .or_else(|| kilter.climbs.iter().next())
+        .map(|(_, climb)| climb)
     else {
         return;
     };
@@ -233,35 +230,38 @@ fn on_paste(
     mut kilter: ResMut<KilterData>,
 ) {
     for event in events.read() {
-        let id = Uuid::new_v4().simple().to_string();
+        // TODO add some way of pasting a climb name.
+        // maybe `name:frame_data`, or keeping the last
+        // non-frame line as a the next climb's name.
 
-        // TODO handle pastes with multiple climbs, either in the format
-        //
-        // p#r#p#r#\np#r#p#r#\np#r#p#r#
-        // or
-        // name\np#r#p#r#\nname\np#r#p#r#
+        let mut added = 0;
 
-        // Handle frame data, or "name\nframe_data"
-        let mut parts = event.0.trim().rsplit('\n');
-        let frames = parts.next().unwrap();
-        let name = parts.next().unwrap_or("Pasted Climb");
+        let lines = event.0.trim().split('\n');
+        for (l, line) in lines.enumerate() {
+            if let Err(e) = parse_placements_and_roles(line) {
+                // TODO add UI toast thing to show errors
+                warn!("On pasted line {}: {}", l, e);
+                continue;
+            }
 
-        if let Err(e) = parse_placements_and_roles(frames) {
-            // TODO add UI toast thing to show errors
-            warn!("{}", e);
-            return;
+            let id = Uuid::new_v4().simple().to_string();
+
+            kilter.climbs.insert(
+                id.clone(),
+                Climb {
+                    uuid: id.clone(),
+                    setter_username: "User".to_string(),
+                    name: "Pasted Climb".to_string(),
+                    frames: line.to_string(),
+                    ..default()
+                },
+            );
+
+            added += 1;
         }
 
-        kilter.climbs.insert(
-            id.clone(),
-            Climb {
-                uuid: id.clone(),
-                setter_username: "User".to_string(),
-                name: name.to_string(),
-                frames: frames.to_string(),
-                ..default()
-            },
-        );
-        selected.0 = id;
+        if added > 0 {
+            selected.0 = kilter.climbs.len() - added;
+        }
     }
 }

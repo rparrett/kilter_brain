@@ -1,4 +1,5 @@
 use combine::EasyParser;
+use indexmap::IndexMap;
 use serde_derive::Deserialize;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -20,7 +21,7 @@ pub struct KilterData {
     pub holes: HashMap<u32, Hole>,
     pub placements: HashMap<u32, Placement>,
     pub placement_roles: HashMap<u32, PlacementRole>,
-    pub climbs: HashMap<String, Climb>,
+    pub climbs: IndexMap<String, Climb>,
 }
 
 impl KilterData {
