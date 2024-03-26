@@ -243,8 +243,13 @@ fn on_paste(
 
         let mut added = 0;
 
-        let lines = event.0.trim().split('\n');
+        let lines = event.0.split('\n');
         for (l, line) in lines.enumerate() {
+            let line = line.trim();
+            if line.is_empty() {
+                continue;
+            }
+
             if let Err(e) = parse_placements_and_roles(line) {
                 // TODO add UI toast thing to show errors
                 warn!("On pasted line {}: {}", l, e);
