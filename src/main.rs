@@ -172,14 +172,14 @@ fn prev_next_climb(
     kilter: Res<KilterData>,
 ) {
     if keys.just_pressed(KeyCode::ArrowRight) {
-        selected.0 = if selected.0 == kilter.climbs.len() {
+        selected.0 = if selected.0 + 1 >= kilter.climbs.len() {
             0
         } else {
             selected.0 + 1
         };
     } else if keys.just_pressed(KeyCode::ArrowLeft) {
         selected.0 = if selected.0 == 0 {
-            kilter.climbs.len()
+            kilter.climbs.len() - 1
         } else {
             selected.0 - 1
         };

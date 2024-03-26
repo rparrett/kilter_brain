@@ -109,7 +109,7 @@ fn update_selected_climb(
     };
 
     let mut text = texts.single_mut();
-    text.sections[0].value = format!("{}/{}", selected.0, kilter.climbs.len());
+    text.sections[0].value = format!("{}/{}", selected.0 + 1, kilter.climbs.len());
     text.sections[2].value.clone_from(&climb.uuid);
     text.sections[4].value.clone_from(&climb.name);
     text.sections[6].value.clone_from(&climb.setter_username);
