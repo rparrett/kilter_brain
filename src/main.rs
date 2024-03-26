@@ -90,7 +90,14 @@ fn main() {
                 .run_if(input_toggle_active(false, KeyCode::Escape)),
         ))
         .add_systems(Startup, setup_scene)
-        .add_systems(Update, (show_climb, prev_next_climb, on_paste))
+        .add_systems(
+            Update,
+            (
+                show_climb.before(placement_indicator::update),
+                prev_next_climb,
+                on_paste,
+            ),
+        )
         .init_resource::<SelectedClimb>()
         .init_resource::<KilterSettings>()
         .register_type::<KilterSettings>()

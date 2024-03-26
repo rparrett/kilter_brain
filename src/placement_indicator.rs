@@ -31,7 +31,7 @@ impl FromWorld for IndicatorHandles {
     }
 }
 #[derive(SystemParam)]
-struct IndicatorHandlesParam<'w> {
+pub struct IndicatorHandlesParam<'w> {
     handles: ResMut<'w, IndicatorHandles>,
     materials: ResMut<'w, Assets<StandardMaterial>>,
 }
@@ -64,7 +64,7 @@ impl Display for PlacementIndicator {
     }
 }
 
-fn update(
+pub fn update(
     mut commands: Commands,
     mut query: Query<(Entity, Ref<PlacementIndicator>), Changed<PlacementIndicator>>,
     kilter: Res<KilterData>,
