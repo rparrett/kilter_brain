@@ -4,13 +4,18 @@
 
 - Automatic updates from API
 - Add route authoring
-- Let users change the angle of the board
+  - [X] Edit placements
+  - [ ] Edit name, setter name
+- native: allow users to configure a command to run to
+  - [ ] Generate a brand-new climb
+  - [ ] Suggest another hold
+  - [ ] Finish the climb
+- web: provide an API for above
 - web: Figure out how to handle pastes when the canvas is focused
 - Make frame parser more permissive
 - Let users search the routes database for other climbs with the selected holds
-- Add button to clear the kilter data
-- Add left/right arrow navigation of climbs
 - Add zooming and panning where zooming all the way out also re-centers you
+- Let users change the angle of the board
 
 ## To get a recent APK
 
