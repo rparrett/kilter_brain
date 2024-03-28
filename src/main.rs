@@ -237,10 +237,6 @@ fn on_paste(
     mut kilter: ResMut<KilterData>,
 ) {
     for event in events.read() {
-        // TODO add some way of pasting a climb name.
-        // maybe `name:frame_data`, or keeping the last
-        // non-frame line as a the next climb's name.
-
         let mut added = 0;
 
         let lines = event.0.split('\n');
@@ -250,7 +246,14 @@ fn on_paste(
                 continue;
             }
 
-            if let Err(e) = parse_placements_and_roles(line) {
+            // Accept `name,frames` or `frames`.
+            let mut parts = line.rsplit(',');
+            let Some(frames) = parts.next() else {
+                continue;
+            };
+            let name = parts.next().unwrap_or("Pasted Climb");
+
+            if let Err(e) = parse_placements_and_roles(frames) {
                 // TODO add UI toast thing to show errors
                 warn!("On pasted line {}: {}", l, e);
                 continue;
@@ -263,8 +266,8 @@ fn on_paste(
                 Climb {
                     uuid: id.clone(),
                     setter_username: "User".to_string(),
-                    name: "Pasted Climb".to_string(),
-                    frames: line.to_string(),
+                    name: name.to_string(),
+                    frames: frames.to_string(),
                     ..default()
                 },
             );

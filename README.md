@@ -17,6 +17,9 @@
 - Let users search the routes database for other climbs with the selected holds
 - Add zooming and panning where zooming all the way out also re-centers you
 - Let users change the angle of the board
+- Add a measuring tape
+- Add a "max armspan required" stat?
+  Is this even possible? Do delaunay, then djikstras, then find the longest edge of the shortest path?
 
 ## To get a recent APK
 
