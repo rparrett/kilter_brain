@@ -8,6 +8,7 @@
   - [ ] Edit name, setter name
 - Display difficulty, quality, ascents, etc in UI
 - web: Figure out how to handle pastes when the canvas is focused
+- web: Add the neat JS progress bar from the Bevy example showcase
 - Make frame parser more permissive
 - Let users search the routes database for other climbs with the selected holds
 - Add zooming and panning where zooming all the way out also re-centers you
