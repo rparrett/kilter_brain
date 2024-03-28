@@ -4,6 +4,7 @@ use bevy::{
     utils::Uuid,
 };
 use bevy_inspector_egui::quick::ResourceInspectorPlugin;
+use gen_api::GenApiPlugin;
 
 use button::ButtonPlugin;
 use combine::EasyParser;
@@ -19,6 +20,7 @@ mod button;
 #[cfg_attr(not(target_arch = "wasm32"), path = "native_clipboard.rs")]
 #[cfg_attr(target_arch = "wasm32", path = "wasm_clipboard.rs")]
 mod clipboard;
+mod gen_api;
 mod human;
 mod kilter_data;
 mod palette;
@@ -77,6 +79,7 @@ fn main() {
         .add_event::<PasteEvent>()
         .add_plugins(DefaultPlugins)
         .add_plugins((
+            GenApiPlugin,
             ClipboardPlugin,
             HumanPlugin,
             AuthoringPlugin,

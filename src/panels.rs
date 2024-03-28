@@ -1,7 +1,12 @@
+use std::fmt::Write;
+
 use bevy::{prelude::*, utils::Uuid};
+
+use bevy_http_client::prelude::*;
 
 use crate::{
     button::button,
+    gen_api::{GenApiSettings, GeneratedClimb},
     kilter_data::{Climb, KilterData},
     placement_indicator::PlacementIndicator,
     theme, SelectedClimb,
@@ -12,7 +17,16 @@ pub struct PanelsPlugin;
 impl Plugin for PanelsPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, (setup_buttons_panel, setup_info_panel));
-        app.add_systems(Update, (update_selected_climb, clear_button, new_button));
+        app.add_systems(
+            Update,
+            (
+                update_selected_climb,
+                clear_button,
+                new_button,
+                gen_button,
+                gen_new_button,
+            ),
+        );
     }
 }
 
@@ -22,6 +36,10 @@ struct ClimbText;
 struct NewButton;
 #[derive(Component)]
 struct ClearButton;
+#[derive(Component)]
+struct GenButton;
+#[derive(Component)]
+struct GenNewButton;
 
 fn setup_info_panel(mut commands: Commands) {
     let container = commands
@@ -88,9 +106,13 @@ fn setup_buttons_panel(mut commands: Commands) {
 
     let new_button = button(&mut commands, "New Climb", NewButton);
     let clear_button = button(&mut commands, "Clear", ClearButton);
+    let gen_button = button(&mut commands, "Generate", GenButton);
+    let gen_new_button = button(&mut commands, "Gen New", GenNewButton);
 
     commands.entity(container).add_child(new_button);
     commands.entity(container).add_child(clear_button);
+    commands.entity(container).add_child(gen_button);
+    commands.entity(container).add_child(gen_new_button);
 }
 
 fn update_selected_climb(
@@ -150,5 +172,42 @@ fn new_button(
         );
 
         selected.0 = kilter.climbs.len();
+    }
+}
+
+fn gen_new_button(
+    query: Query<&Interaction, (With<GenNewButton>, Changed<Interaction>)>,
+    mut ev_request: EventWriter<TypedRequest<GeneratedClimb>>,
+    api_settings: Res<GenApiSettings>,
+) {
+    if query.iter().any(|i| *i == Interaction::Pressed) {
+        ev_request.send(
+            HttpClient::new()
+                .get(format!("{}/generate/a40d15", api_settings.host))
+                .with_type::<GeneratedClimb>(),
+        );
+    }
+}
+
+fn gen_button(
+    query: Query<&Interaction, (With<GenButton>, Changed<Interaction>)>,
+    indicator_query: Query<&PlacementIndicator>,
+    mut ev_request: EventWriter<TypedRequest<GeneratedClimb>>,
+    api_settings: Res<GenApiSettings>,
+) {
+    if query.iter().any(|i| *i == Interaction::Pressed) {
+        let current_frames: String = indicator_query.iter().fold(String::new(), |mut out, ind| {
+            let _ = write!(out, "{ind}");
+            out
+        });
+
+        ev_request.send(
+            HttpClient::new()
+                .get(format!(
+                    "{}/generate/a40d15{}",
+                    api_settings.host, current_frames
+                ))
+                .with_type::<GeneratedClimb>(),
+        );
     }
 }
