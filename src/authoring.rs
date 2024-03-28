@@ -3,7 +3,8 @@ use bevy::prelude::*;
 use std::fmt::Write;
 
 use crate::{
-    kilter_data::KilterData, placement_indicator::PlacementIndicator, Board, KilterSettings,
+    kilter_data::KilterData, placement_indicator::PlacementIndicator, Board, EguiWantsFocus,
+    KilterSettings,
 };
 
 pub struct AuthoringPlugin;
@@ -28,7 +29,13 @@ fn picking(
     settings: Res<KilterSettings>,
     kilter: Res<KilterData>,
     mut selected: ResMut<SelectedPlacement>,
+    egui_wants_focus: Res<EguiWantsFocus>,
 ) {
+    if **egui_wants_focus {
+        selected.0 = None;
+        return;
+    }
+
     let (camera, camera_transform) = camera_query.single();
     let board = board_query.single();
 
@@ -101,10 +108,15 @@ fn cycle(
     mut indicator_query: Query<(Entity, &mut PlacementIndicator)>,
     buttons: Res<ButtonInput<MouseButton>>,
     board_query: Query<Entity, With<Board>>,
+    egui_wants_focus: Res<EguiWantsFocus>,
 ) {
     let Some(selected) = selected.0 else {
         return;
     };
+
+    if **egui_wants_focus {
+        return;
+    }
 
     if !buttons.just_pressed(MouseButton::Left) {
         return;

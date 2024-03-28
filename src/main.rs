@@ -73,6 +73,7 @@ fn main() {
 
     App::new()
         .insert_resource(kd)
+        .init_resource::<EguiWantsFocus>()
         .add_event::<PasteEvent>()
         .add_plugins(DefaultPlugins)
         .add_plugins((
@@ -96,6 +97,7 @@ fn main() {
                 show_climb.before(placement_indicator::update),
                 prev_next_climb,
                 on_paste,
+                check_egui_wants_focus,
             ),
         )
         .init_resource::<SelectedClimb>()
@@ -279,4 +281,22 @@ fn on_paste(
             selected.0 = kilter.climbs.len() - added;
         }
     }
+}
+
+#[derive(Resource, Deref, DerefMut, PartialEq, Eq, Default)]
+struct EguiWantsFocus(bool);
+
+// Snagged from bevy_pancam
+fn check_egui_wants_focus(
+    mut contexts: Query<&mut bevy_egui::EguiContext>,
+    mut wants_focus: ResMut<EguiWantsFocus>,
+) {
+    let ctx = contexts.iter_mut().next();
+    let new_wants_focus = if let Some(ctx) = ctx {
+        let ctx = ctx.into_inner().get_mut();
+        ctx.wants_pointer_input() || ctx.wants_keyboard_input()
+    } else {
+        false
+    };
+    wants_focus.set_if_neq(EguiWantsFocus(new_wants_focus));
 }
