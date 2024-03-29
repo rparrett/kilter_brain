@@ -216,13 +216,13 @@ fn show_climb(
         return;
     };
 
-    let Ok((placements, _)) = placements_and_roles().easy_parse(climb.frames.as_str()) else {
-        return;
-    };
-
     for entity in &indicators {
         commands.entity(entity).despawn_recursive();
     }
+
+    let Ok((placements, _)) = placements_and_roles().easy_parse(climb.frames.as_str()) else {
+        return;
+    };
 
     for (placement_id, role_id) in placements {
         let indicator = commands
