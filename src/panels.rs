@@ -171,7 +171,7 @@ fn new_button(
             },
         );
 
-        selected.0 = kilter.climbs.len();
+        selected.0 = kilter.climbs.len() - 1;
     }
 }
 
