@@ -2,14 +2,16 @@
 
 ## TODO
 
-- Automatic updates from API
+- native: Automatic updates from kilter API
 - Add route authoring
   - [X] Edit placements
-  - [ ] Edit name, setter name
+  - [ ] Edit name, setter name, description, etc.
 - Display difficulty, quality, ascents, etc in UI
 - web: Figure out how to handle pastes when the canvas is focused
 - web: Add the neat JS progress bar from the Bevy example showcase
-- Make frame parser more permissive
+- Add generic UI toast to show frame parsing errors, network errors, paste results, etc
+- Add little spinny network indicator -- just count the number of http request entities
+- Make frame parser more permissive to whitespace?
 - Let users search the routes database for other climbs with the selected holds
 - Add zooming and panning where zooming all the way out also re-centers you
 - Let users change the angle of the board
