@@ -106,7 +106,7 @@ fn setup_buttons_panel(mut commands: Commands) {
 
     let new_button = button(&mut commands, "New Climb", NewButton);
     let clear_button = button(&mut commands, "Clear", ClearButton);
-    let gen_button = button(&mut commands, "Generate", GenButton);
+    let gen_button = button(&mut commands, "Gen Fill", GenButton);
     let gen_new_button = button(&mut commands, "Gen New", GenNewButton);
 
     commands.entity(container).add_child(new_button);
