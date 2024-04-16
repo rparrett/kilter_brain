@@ -13,6 +13,7 @@ use combine::EasyParser;
 use clipboard::ClipboardPlugin;
 use human::HumanPlugin;
 use kilter_data::{parse_placements_and_roles, placements_and_roles, Climb, KilterData};
+use pan_cam::PanCamPlugin;
 use panels::PanelsPlugin;
 use placement_indicator::{PlacementIndicator, PlacementIndicatorPlugin};
 
@@ -25,6 +26,7 @@ mod gen_api;
 mod human;
 mod kilter_data;
 mod palette;
+mod pan_cam;
 mod panels;
 mod placement_indicator;
 mod theme;
@@ -86,6 +88,7 @@ fn main() {
             ButtonPlugin,
             PanelsPlugin,
             PlacementIndicatorPlugin,
+            PanCamPlugin,
         ))
         .add_plugins((
             ResourceInspectorPlugin::<KilterSettings>::default()
@@ -135,12 +138,6 @@ fn setup_scene(
             ..default()
         }
         .into(),
-        ..default()
-    });
-
-    // camera
-    commands.spawn(Camera3dBundle {
-        transform: Transform::from_xyz(-2.0, 1.0, 6.0).looking_at(Vec3::ZERO, Vec3::Y),
         ..default()
     });
 
