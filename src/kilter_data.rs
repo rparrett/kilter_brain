@@ -1,6 +1,6 @@
 use combine::EasyParser;
 use indexmap::IndexMap;
-use serde_derive::Deserialize;
+use serde_derive::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::io::Read;
@@ -255,7 +255,7 @@ pub struct PlacementRole {
     pub screen_color: String,
 }
 
-#[derive(Deserialize, Default, Debug)]
+#[derive(Serialize, Deserialize, Default, Debug)]
 pub struct Climb {
     pub uuid: String,
     pub name: String,

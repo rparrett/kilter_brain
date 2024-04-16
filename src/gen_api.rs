@@ -32,8 +32,8 @@ pub struct GenApiSettings {
 impl Default for GenApiSettings {
     fn default() -> Self {
         Self {
-            host: "https://www.robparrett.com:5002".to_string(),
-            //host: "http://localhost:5001".to_string(),
+            //host: "https://www.robparrett.com:5002".to_string(),
+            host: "http://localhost:5001".to_string(),
         }
     }
 }

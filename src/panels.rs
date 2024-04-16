@@ -25,6 +25,7 @@ impl Plugin for PanelsPlugin {
                 new_button,
                 gen_button,
                 gen_new_button,
+                publish_button,
             ),
         );
     }
@@ -40,6 +41,8 @@ struct ClearButton;
 struct GenButton;
 #[derive(Component)]
 struct GenNewButton;
+#[derive(Component)]
+struct PublishButton;
 
 fn setup_info_panel(mut commands: Commands) {
     let container = commands
@@ -108,11 +111,13 @@ fn setup_buttons_panel(mut commands: Commands) {
     let clear_button = button(&mut commands, "Clear", ClearButton);
     let gen_button = button(&mut commands, "Gen Fill", GenButton);
     let gen_new_button = button(&mut commands, "Gen New", GenNewButton);
+    let publish_button = button(&mut commands, "Publish", PublishButton);
 
     commands.entity(container).add_child(new_button);
     commands.entity(container).add_child(clear_button);
     commands.entity(container).add_child(gen_button);
     commands.entity(container).add_child(gen_new_button);
+    commands.entity(container).add_child(publish_button);
 }
 
 fn update_selected_climb(
@@ -207,6 +212,34 @@ fn gen_button(
                     "{}/generate/a40d15{}",
                     api_settings.host, current_frames
                 ))
+                .with_type::<GeneratedClimb>(),
+        );
+    }
+}
+
+fn publish_button(
+    query: Query<&Interaction, (With<PublishButton>, Changed<Interaction>)>,
+    indicator_query: Query<&PlacementIndicator>,
+    mut ev_request: EventWriter<TypedRequest<GeneratedClimb>>,
+    api_settings: Res<GenApiSettings>,
+    selected: Res<SelectedClimb>,
+    kilter: Res<KilterData>,
+) {
+    if query.iter().any(|i| *i == Interaction::Pressed) {
+        let current_frames: String = indicator_query.iter().fold(String::new(), |mut out, ind| {
+            let _ = write!(out, "{ind}");
+            out
+        });
+
+        // Get selected or first climb
+        let Some((_, climb)) = kilter.climbs.iter().nth(selected.0) else {
+            return;
+        };
+
+        ev_request.send(
+            HttpClient::new()
+                .post(format!("{}/publish", api_settings.host))
+                .json(&climb)
                 .with_type::<GeneratedClimb>(),
         );
     }
