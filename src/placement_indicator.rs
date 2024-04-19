@@ -1,4 +1,5 @@
 use bevy::{ecs::system::SystemParam, prelude::*, utils::HashMap};
+use bevy_mod_picking::picking_core::Pickable;
 
 use std::fmt::Display;
 
@@ -91,20 +92,26 @@ pub fn update(
 
             // Outline
             let outline = commands
-                .spawn((PbrBundle {
-                    mesh: handles.handles.outline_mesh.clone(),
-                    material: handles.get_material("#000000"),
-                    transform: Transform::from_translation(Vec3::Z * -0.0001),
-                    ..default()
-                },))
+                .spawn((
+                    PbrBundle {
+                        mesh: handles.handles.outline_mesh.clone(),
+                        material: handles.get_material("#000000"),
+                        transform: Transform::from_translation(Vec3::Z * -0.0001),
+                        ..default()
+                    },
+                    Pickable::IGNORE,
+                ))
                 .id();
 
-            commands.entity(entity).insert(PbrBundle {
-                mesh: handles.handles.mesh.clone(),
-                material: handles.get_material(&role.led_color),
-                transform: Transform::from_translation(pos.extend(0.0002)),
-                ..default()
-            });
+            commands.entity(entity).insert((
+                PbrBundle {
+                    mesh: handles.handles.mesh.clone(),
+                    material: handles.get_material(&role.led_color),
+                    transform: Transform::from_translation(pos.extend(0.0002)),
+                    ..default()
+                },
+                Pickable::IGNORE,
+            ));
 
             commands.entity(entity).add_child(outline);
         } else {

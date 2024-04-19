@@ -8,8 +8,8 @@ edition = "2021"
 [dependencies]
 bevy = "0.13.1"
 bevy-inspector-egui = "0.23"
-bevy_egui = "*"
 bevy_http_client = "0.5.1"
+bevy_mod_picking = { version = "0.18.2", features = ["backend_egui"] }
 combine = "4.6.6"
 indexmap = "2.2.6"
 serde = "1.0.196"

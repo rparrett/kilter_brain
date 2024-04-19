@@ -236,10 +236,13 @@ fn publish_button(
             return;
         };
 
+        let mut new_climb = climb.clone();
+        new_climb.frames = current_frames;
+
         ev_request.send(
             HttpClient::new()
                 .post(format!("{}/publish", api_settings.host))
-                .json(&climb)
+                .json(&new_climb)
                 .with_type::<GeneratedClimb>(),
         );
     }
