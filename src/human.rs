@@ -1,4 +1,4 @@
-use std::f32::consts::PI;
+use std::{f32::consts::PI, time::Duration};
 
 use bevy::prelude::*;
 
@@ -51,11 +51,23 @@ impl FromWorld for HumanAssets {
 
 // Once the scene is loaded, start the animation
 fn setup_scene_once_loaded(
+    mut commands: Commands,
     assets: Res<HumanAssets>,
-    mut players: Query<&mut AnimationPlayer, Added<AnimationPlayer>>,
+    mut players: Query<(Entity, &mut AnimationPlayer), Added<AnimationPlayer>>,
 ) {
-    for mut player in &mut players {
+    for (entity, mut player) in &mut players {
+        let mut transitions = AnimationTransitions::new();
+
+        transitions
+            .play(&mut player, assets.animations[0], Duration::ZERO)
+            .repeat();
+
         player.play(assets.animations[0]).repeat();
+
+        commands
+            .entity(entity)
+            .insert(assets.graph.clone())
+            .insert(transitions);
     }
 }
 
