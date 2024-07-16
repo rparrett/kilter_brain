@@ -1,7 +1,6 @@
 use authoring::AuthoringPlugin;
 use bevy::{
     input::common_conditions::input_toggle_active, pbr::CascadeShadowConfigBuilder, prelude::*,
-    utils::Uuid,
 };
 use bevy_inspector_egui::quick::ResourceInspectorPlugin;
 use bevy_mod_picking::prelude::*;
@@ -16,6 +15,7 @@ use kilter_data::{parse_placements_and_roles, placements_and_roles, Climb, Kilte
 use pan_cam::PanCamPlugin;
 use panels::PanelsPlugin;
 use placement_indicator::{PlacementIndicator, PlacementIndicatorPlugin};
+use uuid::Uuid;
 
 mod authoring;
 mod button;
@@ -25,7 +25,6 @@ mod clipboard;
 mod gen_api;
 mod human;
 mod kilter_data;
-mod palette;
 mod pan_cam;
 mod panels;
 mod placement_indicator;

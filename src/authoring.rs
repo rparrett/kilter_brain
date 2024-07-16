@@ -107,7 +107,7 @@ fn draw_selection(
 
     gizmos.circle(
         board.translation() + pos.extend(0.) - board.forward() * 0.01,
-        Direction3d::new_unchecked(board.forward()),
+        board.forward(),
         0.1,
         Color::WHITE,
     );

@@ -17,14 +17,34 @@ impl Plugin for HumanPlugin {
 #[derive(Resource)]
 struct HumanAssets {
     scene: Handle<Scene>,
-    animations: Vec<Handle<AnimationClip>>,
+    animations: Vec<AnimationNodeIndex>,
+    #[allow(dead_code)]
+    graph: Handle<AnimationGraph>,
 }
 impl FromWorld for HumanAssets {
     fn from_world(world: &mut World) -> Self {
         let asset_server = world.resource::<AssetServer>();
+
+        let scene = asset_server.load(GltfAssetLabel::Scene(0).from_asset("human.glb"));
+
+        let mut graph = AnimationGraph::new();
+        let animations = graph
+            .add_clips(
+                [GltfAssetLabel::Animation(1).from_asset("human.glb")]
+                    .into_iter()
+                    .map(|path| asset_server.load(path)),
+                1.0,
+                graph.root,
+            )
+            .collect();
+
+        let mut graphs = world.resource_mut::<Assets<AnimationGraph>>();
+        let graph = graphs.add(graph);
+
         Self {
-            scene: asset_server.load("human.glb#Scene0"),
-            animations: vec![asset_server.load("human.glb#Animation1")],
+            scene,
+            animations,
+            graph,
         }
     }
 }
@@ -35,7 +55,7 @@ fn setup_scene_once_loaded(
     mut players: Query<&mut AnimationPlayer, Added<AnimationPlayer>>,
 ) {
     for mut player in &mut players {
-        player.play(assets.animations[0].clone_weak()).repeat();
+        player.play(assets.animations[0]).repeat();
     }
 }
 

@@ -42,10 +42,8 @@ impl IndicatorHandlesParam<'_> {
             return mat.clone();
         };
 
-        let base_color = Color::hex(color).unwrap();
-
         let material = StandardMaterial {
-            base_color,
+            base_color: Srgba::hex(color).unwrap().into(),
             unlit: true,
             ..default()
         };

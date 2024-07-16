@@ -1,8 +1,9 @@
 use std::fmt::Write;
 
-use bevy::{prelude::*, utils::Uuid};
+use bevy::prelude::*;
 
 use bevy_http_client::prelude::*;
+use uuid::Uuid;
 
 use crate::{
     button::button,
@@ -54,7 +55,7 @@ fn setup_info_panel(mut commands: Commands) {
                 padding: UiRect::all(Val::Px(12.)),
                 ..default()
             },
-            background_color: Color::rgba(0., 0., 0., 0.3).into(),
+            background_color: theme::CONTAINER_BG.into(),
             ..default()
         })
         .id();
@@ -65,7 +66,7 @@ fn setup_info_panel(mut commands: Commands) {
                 value: "".to_string(),
                 style: TextStyle {
                     font_size: theme::FONT_SIZE,
-                    color: theme::FONT_COLOR,
+                    color: theme::FONT_COLOR.into(),
                     ..default()
                 },
             },
@@ -73,7 +74,7 @@ fn setup_info_panel(mut commands: Commands) {
                 value: "\n".to_string(),
                 style: TextStyle {
                     font_size: theme::FONT_SIZE,
-                    color: theme::FONT_COLOR,
+                    color: theme::FONT_COLOR.into(),
                     ..default()
                 },
             },
@@ -102,7 +103,7 @@ fn setup_buttons_panel(mut commands: Commands) {
                 flex_direction: FlexDirection::Column,
                 ..default()
             },
-            background_color: Color::rgba(0., 0., 0., 0.3).into(),
+            background_color: theme::CONTAINER_BG.into(),
             ..default()
         })
         .id();

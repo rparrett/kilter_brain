@@ -52,7 +52,7 @@ pub fn button<M: Component>(commands: &mut Commands, text: &str, marker: M) -> E
                 text.to_string(),
                 TextStyle {
                     font_size: theme::FONT_SIZE,
-                    color: theme::FONT_COLOR,
+                    color: theme::FONT_COLOR.into(),
                     ..default()
                 },
             ));
