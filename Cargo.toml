@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = { version = "0.14", features = ["webgpu"] }
+bevy = { version = "0.14" }
 bevy-inspector-egui = "0.25"
 bevy_http_client = "0.6"
 bevy_mod_picking = { version = "0.20", features = ["backend_egui"] }
