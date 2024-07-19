@@ -1,14 +1,13 @@
 use authoring::AuthoringPlugin;
-use bevy::{pbr::CascadeShadowConfigBuilder, prelude::*};
+use bevy::prelude::*;
 
 use bevy_mod_picking::prelude::*;
 use debug::DebugPlugin;
 use gen_api::GenApiPlugin;
 
 use button::ButtonPlugin;
-use combine::EasyParser;
 
-use clipboard::{ClipboardPlugin, PasteEvent};
+use clipboard::ClipboardPlugin;
 use human::HumanPlugin;
 use kilter_board::KilterBoardPlugin;
 use kilter_data::KilterData;
