@@ -8,9 +8,10 @@ use uuid::Uuid;
 use crate::{
     button::button,
     gen_api::{GenApiSettings, GeneratedClimb},
+    kilter_board::SelectedClimb,
     kilter_data::{Climb, KilterData},
     placement_indicator::PlacementIndicator,
-    theme, SelectedClimb,
+    theme,
 };
 
 pub struct PanelsPlugin;

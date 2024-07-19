@@ -6,7 +6,8 @@ use std::sync::{
 };
 use wasm_bindgen::{JsCast, UnwrapThrowExt};
 
-use crate::PasteEvent;
+#[derive(Event)]
+pub struct PasteEvent(pub String);
 
 #[derive(Resource)]
 struct OnPasteSender(Mutex<Sender<String>>);
@@ -23,7 +24,8 @@ impl Plugin for ClipboardPlugin {
         let paste_sender = OnPasteSender(Mutex::new(tx));
         let paste_receiver = OnPasteReceiver(Mutex::new(rx));
 
-        app.insert_resource(paste_sender)
+        app.add_event::<PasteEvent>()
+            .insert_resource(paste_sender)
             .insert_resource(paste_receiver)
             .add_systems(Startup, setup_clipboard_system)
             .add_systems(Update, clipboard);

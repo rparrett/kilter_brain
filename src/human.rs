@@ -2,7 +2,7 @@ use std::{f32::consts::PI, time::Duration};
 
 use bevy::prelude::*;
 
-use crate::BOARD_HEIGHT;
+use crate::kilter_board::BOARD_HEIGHT;
 
 pub struct HumanPlugin;
 

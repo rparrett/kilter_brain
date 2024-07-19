@@ -3,7 +3,7 @@ use bevy_mod_picking::picking_core::Pickable;
 
 use std::fmt::Display;
 
-use crate::{kilter_data::KilterData, KilterSettings};
+use crate::{kilter_board::KilterSettings, kilter_data::KilterData};
 
 pub struct PlacementIndicatorPlugin;
 

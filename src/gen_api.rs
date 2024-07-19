@@ -4,8 +4,8 @@ use bevy_inspector_egui::quick::ResourceInspectorPlugin;
 use serde_derive::Deserialize;
 
 use crate::{
+    kilter_board::SelectedClimb,
     kilter_data::{Climb, KilterData},
-    SelectedClimb,
 };
 
 pub struct GenApiPlugin;

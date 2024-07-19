@@ -1,10 +1,14 @@
 use bevy::prelude::*;
 use bevy_mod_picking::events::{Click, Move, Out, Pointer};
+use uuid::Uuid;
 
 use std::fmt::Write;
 
 use crate::{
-    kilter_data::KilterData, placement_indicator::PlacementIndicator, Board, KilterSettings,
+    clipboard::PasteEvent,
+    kilter_board::{Board, KilterSettings, SelectedClimb},
+    kilter_data::{parse_placements_and_roles, Climb, KilterData},
+    placement_indicator::PlacementIndicator,
 };
 
 pub struct AuthoringPlugin;
@@ -12,7 +16,10 @@ pub struct AuthoringPlugin;
 impl Plugin for AuthoringPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<SelectedPlacement>();
-        app.add_systems(Update, (cycle, log_frames, picking, draw_selection));
+        app.add_systems(
+            Update,
+            (cycle, log_frames, picking, draw_selection, on_paste),
+        );
     }
 }
 
@@ -182,4 +189,54 @@ fn log_frames(
     });
 
     info!("{out}");
+}
+
+fn on_paste(
+    mut events: EventReader<PasteEvent>,
+    mut selected: ResMut<SelectedClimb>,
+    mut kilter: ResMut<KilterData>,
+) {
+    for event in events.read() {
+        let mut added = 0;
+
+        let lines = event.0.split('\n');
+        for (l, line) in lines.enumerate() {
+            let line = line.trim();
+            if line.is_empty() {
+                continue;
+            }
+
+            // Accept `name,frames` or `frames`.
+            let mut parts = line.rsplit(',');
+            let Some(frames) = parts.next() else {
+                continue;
+            };
+            let name = parts.next().unwrap_or("Pasted Climb");
+
+            if let Err(e) = parse_placements_and_roles(frames) {
+                // TODO add UI toast thing to show errors
+                warn!("On pasted line {}: {}", l, e);
+                continue;
+            }
+
+            let id = Uuid::new_v4().simple().to_string();
+
+            kilter.climbs.insert(
+                id.clone(),
+                Climb {
+                    uuid: id.clone(),
+                    setter_username: "User".to_string(),
+                    name: name.to_string(),
+                    frames: frames.to_string(),
+                    ..default()
+                },
+            );
+
+            added += 1;
+        }
+
+        if added > 0 {
+            selected.0 = kilter.climbs.len() - added;
+        }
+    }
 }
