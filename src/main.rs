@@ -1,34 +1,6 @@
-use authoring::AuthoringPlugin;
 use bevy::prelude::*;
 
-use bevy_mod_picking::prelude::*;
-use debug::DebugPlugin;
-use gen_api::GenApiPlugin;
-
-use button::ButtonPlugin;
-
-use clipboard::ClipboardPlugin;
-use human::HumanPlugin;
-use kilter_board::KilterBoardPlugin;
-use kilter_data::KilterData;
-use pan_cam::PanCamPlugin;
-use panels::PanelsPlugin;
-use placement_indicator::PlacementIndicatorPlugin;
-
-mod authoring;
-mod button;
-#[cfg_attr(not(target_arch = "wasm32"), path = "native_clipboard.rs")]
-#[cfg_attr(target_arch = "wasm32", path = "wasm_clipboard.rs")]
-mod clipboard;
-mod debug;
-mod gen_api;
-mod human;
-mod kilter_board;
-mod kilter_data;
-mod pan_cam;
-mod panels;
-mod placement_indicator;
-mod theme;
+use kilter_brain::{kilter_data::KilterData, AppPlugin};
 
 fn main() {
     // Just embed some minimal json on the web for now. In the future we will want to
@@ -52,18 +24,6 @@ fn main() {
     App::new()
         .insert_resource(kd)
         .add_plugins(DefaultPlugins)
-        .add_plugins((
-            GenApiPlugin,
-            ClipboardPlugin,
-            HumanPlugin,
-            AuthoringPlugin,
-            ButtonPlugin,
-            PanelsPlugin,
-            PlacementIndicatorPlugin,
-            PanCamPlugin,
-            DebugPlugin,
-            KilterBoardPlugin,
-        ))
-        .add_plugins(DefaultPickingPlugins)
+        .add_plugins(AppPlugin)
         .run();
 }

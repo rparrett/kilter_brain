@@ -1,13 +1,11 @@
-extern crate clipboard;
-
 use bevy::prelude::*;
 use clipboard::{ClipboardContext, ClipboardProvider};
-#[derive(Event)]
-pub struct PasteEvent(pub String);
 
-pub struct ClipboardPlugin;
+use super::PasteEvent;
 
-impl Plugin for ClipboardPlugin {
+pub struct NativeClipboardPlugin;
+
+impl Plugin for NativeClipboardPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<PasteEvent>().add_systems(Update, paste);
     }

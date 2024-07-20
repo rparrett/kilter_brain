@@ -6,16 +6,13 @@ use std::sync::{
 };
 use wasm_bindgen::{JsCast, UnwrapThrowExt};
 
-#[derive(Event)]
-pub struct PasteEvent(pub String);
-
 #[derive(Resource)]
 struct OnPasteSender(Mutex<Sender<String>>);
 
 #[derive(Resource)]
 struct OnPasteReceiver(Mutex<Receiver<String>>);
 
-pub struct ClipboardPlugin;
+pub struct WasmClipboardPlugin;
 
 impl Plugin for ClipboardPlugin {
     fn build(&self, app: &mut App) {
