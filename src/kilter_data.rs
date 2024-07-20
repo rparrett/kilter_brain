@@ -11,7 +11,7 @@ use combine::error::ParseError;
 use combine::stream::RangeStream;
 use combine::{many1, parser::char::digit, Parser};
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(any(target_arch = "wasm32", target_os="android", target_os="ios")))]
 use rusqlite::{Connection, Result};
 
 use bevy::prelude::*;
@@ -25,7 +25,7 @@ pub struct KilterData {
 }
 
 impl KilterData {
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(not(any(target_arch = "wasm32", target_os="android", target_os="ios")))]
     pub fn from_sqlite(path: &str) -> Result<Self> {
         let conn = Connection::open(path).unwrap();
 

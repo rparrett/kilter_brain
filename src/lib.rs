@@ -13,11 +13,11 @@ use placement_indicator::PlacementIndicatorPlugin;
 
 mod authoring;
 mod button;
+mod clipboard;
 mod debug;
 mod gen_api;
 mod human;
 mod kilter_board;
-mod clipboard;
 pub mod kilter_data;
 mod pan_cam;
 mod panels;
