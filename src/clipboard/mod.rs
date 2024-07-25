@@ -17,6 +17,6 @@ impl Plugin for ClipboardPlugin {
         #[cfg(not(any(target_arch = "wasm32", target_os = "android", target_os = "ios")))]
         app.add_plugins(native_clipboard::NativeClipboardPlugin);
         #[cfg(target_arch = "wasm32")]
-        app.add_plugins(native_clipboard::WasmClipboardPlugin);
+        app.add_plugins(wasm_clipboard::WasmClipboardPlugin);
     }
 }
