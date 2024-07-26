@@ -2810,6 +2810,7 @@ dependencies = [
  "uuid",
  "wasm-bindgen",
  "web-sys",
+ "webbrowser",
 ]
 
 [[package]]

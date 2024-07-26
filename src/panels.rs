@@ -28,6 +28,7 @@ impl Plugin for PanelsPlugin {
                 gen_button,
                 gen_new_button,
                 publish_button,
+                open_climb_button,
             ),
         );
     }
@@ -45,6 +46,8 @@ struct GenButton;
 struct GenNewButton;
 #[derive(Component)]
 struct PublishButton;
+#[derive(Component)]
+struct OpenClimbButton;
 
 fn setup_info_panel(mut commands: Commands) {
     let container = commands
@@ -114,12 +117,14 @@ fn setup_buttons_panel(mut commands: Commands) {
     let gen_button = button(&mut commands, "Gen Fill", GenButton);
     let gen_new_button = button(&mut commands, "Gen New", GenNewButton);
     let publish_button = button(&mut commands, "Publish", PublishButton);
+    let open_climb_button = button(&mut commands, "Open", OpenClimbButton);
 
     commands.entity(container).add_child(new_button);
     commands.entity(container).add_child(clear_button);
     commands.entity(container).add_child(gen_button);
     commands.entity(container).add_child(gen_new_button);
     commands.entity(container).add_child(publish_button);
+    commands.entity(container).add_child(open_climb_button);
 }
 
 fn update_selected_climb(
@@ -247,5 +252,23 @@ fn publish_button(
                 .json(&new_climb)
                 .with_type::<GeneratedClimb>(),
         );
+    }
+}
+
+fn open_climb_button(
+    query: Query<&Interaction, (With<OpenClimbButton>, Changed<Interaction>)>,
+    selected: Res<SelectedClimb>,
+    kilter: Res<KilterData>,
+) {
+    if query.iter().any(|i| *i == Interaction::Pressed) {
+        let Some((_, climb)) = kilter.climbs.iter().nth(selected.0) else {
+            return;
+        };
+
+        if let Err(err) =
+            webbrowser::open(&format!("https://kilterboardapp.com/climbs/{}", climb.uuid))
+        {
+            warn!("Failed to open url: {:?}", err);
+        }
     }
 }
