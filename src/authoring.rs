@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{input::gestures::PinchGesture, prelude::*};
 use bevy_mod_picking::events::{Click, DragEnd, Pointer};
 use uuid::Uuid;
 
@@ -25,9 +25,11 @@ fn cycle(
     board_query: Query<(Entity, &GlobalTransform), With<Board>>,
     mut click_events: EventReader<Pointer<Click>>,
     mut drag_end: EventReader<Pointer<DragEnd>>,
+    mut pinch_events: EventReader<PinchGesture>,
     kilter: Res<KilterData>,
     settings: Res<KilterSettings>,
 ) {
+    let pinching = pinch_events.read().len() > 0;
     let drag_dist = drag_end.read().map(|e| e.event.distance).sum::<Vec2>();
 
     for event in click_events.read() {
@@ -36,6 +38,10 @@ fn cycle(
         };
 
         if drag_dist.length_squared() > 256.0 {
+            continue;
+        }
+
+        if pinching {
             continue;
         }
 
