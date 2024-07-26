@@ -1,5 +1,8 @@
 use bevy::{
-    input::mouse::{MouseScrollUnit, MouseWheel},
+    input::{
+        gestures::PinchGesture,
+        mouse::{MouseScrollUnit, MouseWheel},
+    },
     prelude::*,
 };
 use bevy_mod_picking::events::{Drag, Pointer};
@@ -33,15 +36,18 @@ fn setup(mut commands: Commands) {
 fn camera_zoom(
     mut query: Query<(&mut PanCam, &mut Transform)>,
     mut scroll_events: EventReader<MouseWheel>,
+    mut pinch_events: EventReader<PinchGesture>,
 ) {
     let pixels_per_line = 100.;
-    let scroll = scroll_events
+    let mut scroll = scroll_events
         .read()
         .map(|ev| match ev.unit {
             MouseScrollUnit::Pixel => ev.y,
             MouseScrollUnit::Line => ev.y * pixels_per_line,
         })
         .sum::<f32>();
+
+    scroll += pinch_events.read().map(|gesture| gesture.0).sum::<f32>() * -100.;
 
     if scroll == 0. {
         return;

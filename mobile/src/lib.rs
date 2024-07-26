@@ -18,6 +18,7 @@ fn main() {
                 primary_window: Some(Window {
                     resizable: false,
                     mode: WindowMode::BorderlessFullscreen,
+                    recognize_pinch_gesture: true,
                     ..default()
                 }),
                 ..default()
