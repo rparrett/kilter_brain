@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_mod_picking::events::{Click, Move, Out, Pointer};
+use bevy_mod_picking::events::{Click, DragEnd, Pointer};
 use uuid::Uuid;
 
 use std::fmt::Write;
@@ -15,37 +15,29 @@ pub struct AuthoringPlugin;
 
 impl Plugin for AuthoringPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<SelectedPlacement>();
-        app.add_systems(
-            Update,
-            (cycle, log_frames, picking, draw_selection, on_paste),
-        );
+        app.add_systems(Update, (cycle, log_frames, on_paste));
     }
 }
 
-#[derive(Resource, Default)]
-struct SelectedPlacement(Option<u32>);
-
-const PICKING_THRESHOLD: f32 = 0.01; // squared distance
-
-fn picking(
-    mut move_events: EventReader<Pointer<Move>>,
-    mut out_events: EventReader<Pointer<Out>>,
-    board_query: Query<&GlobalTransform, With<Board>>,
+fn cycle(
+    mut commands: Commands,
+    mut indicator_query: Query<(Entity, &mut PlacementIndicator)>,
+    board_query: Query<(Entity, &GlobalTransform), With<Board>>,
+    mut click_events: EventReader<Pointer<Click>>,
+    mut drag_end: EventReader<Pointer<DragEnd>>,
     kilter: Res<KilterData>,
     settings: Res<KilterSettings>,
-    mut selected: ResMut<SelectedPlacement>,
 ) {
-    for event in move_events.read() {
-        info!("{:?}", event);
+    let drag_dist = drag_end.read().map(|e| e.event.distance).sum::<Vec2>();
 
-        let Ok(board) = board_query.get(event.target) else {
+    for event in click_events.read() {
+        let Ok((board_entity, board)) = board_query.get(event.target) else {
             continue;
         };
 
-        let Some(point) = event.event.hit.position else {
+        if drag_dist.length_squared() > 256.0 {
             continue;
-        };
+        }
 
         let mut min: Option<(u32, Vec2, f32)> = None;
 
@@ -58,9 +50,13 @@ fn picking(
                 continue;
             };
 
+            let Some(hit_position) = event.event.hit.position else {
+                continue;
+            };
+
             let pos = Vec2::new(hole.x as f32, hole.y as f32) * settings.scale + settings.offset;
 
-            let cursor = point - board.translation();
+            let cursor = hit_position - board.translation();
 
             let d_squared = pos.distance_squared(cursor.truncate());
 
@@ -69,70 +65,7 @@ fn picking(
             }
         }
 
-        let Some((placement_id, _, d_squared)) = min else {
-            selected.0 = None;
-            return;
-        };
-
-        if d_squared > PICKING_THRESHOLD {
-            selected.0 = None;
-            return;
-        }
-
-        selected.0 = Some(placement_id);
-    }
-
-    for _ in out_events.read() {
-        selected.0 = None;
-    }
-}
-
-fn draw_selection(
-    mut gizmos: Gizmos,
-    kilter: Res<KilterData>,
-    settings: Res<KilterSettings>,
-    board_query: Query<&GlobalTransform, With<Board>>,
-    selected: Res<SelectedPlacement>,
-) {
-    let Ok(board) = board_query.get_single() else {
-        return;
-    };
-
-    let Some(placement_id) = selected.0 else {
-        return;
-    };
-
-    let Some(placement) = kilter.placements.get(&placement_id) else {
-        return;
-    };
-
-    let Some(hole) = kilter.holes.get(&placement.hole_id) else {
-        return;
-    };
-
-    let pos = Vec2::new(hole.x as f32, hole.y as f32) * settings.scale + settings.offset;
-
-    gizmos.circle(
-        board.translation() + pos.extend(0.) - board.forward() * 0.01,
-        board.forward(),
-        0.1,
-        Color::WHITE,
-    );
-}
-
-fn cycle(
-    mut commands: Commands,
-    selected: Res<SelectedPlacement>,
-    mut indicator_query: Query<(Entity, &mut PlacementIndicator)>,
-    board_query: Query<Entity, With<Board>>,
-    mut click_events: EventReader<Pointer<Click>>,
-) {
-    let Some(selected) = selected.0 else {
-        return;
-    };
-
-    for event in click_events.read() {
-        let Ok(_) = board_query.get(event.target) else {
+        let Some((placement_id, _, _d_squared)) = min else {
             continue;
         };
 
@@ -141,7 +74,7 @@ fn cycle(
 
         let search = indicator_query
             .iter_mut()
-            .find(|(_, p)| p.placement_id == selected);
+            .find(|(_, p)| p.placement_id == placement_id);
 
         if let Some((entity, mut placement)) = search {
             // 12=start, 13=any, 15=foot_only, 14=finish
@@ -162,14 +95,13 @@ fn cycle(
             // TODO use the default role for the placement as defined
             // in the database.
 
-            let entity = board_query.single();
             let indicator = commands
                 .spawn(PlacementIndicator {
-                    placement_id: selected,
+                    placement_id,
                     role_id: 12,
                 })
                 .id();
-            commands.entity(entity).add_child(indicator);
+            commands.entity(board_entity).add_child(indicator);
         }
     }
 }
