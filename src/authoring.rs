@@ -92,13 +92,19 @@ fn cycle(
                 commands.entity(entity).despawn_recursive();
             }
         } else {
-            // TODO use the default role for the placement as defined
-            // in the database.
+            let role_id = kilter
+                .placements
+                .get(&placement_id)
+                .and_then(|p| p.default_placement_role_id)
+                .unwrap_or(12);
+
+            // TODO if there are already two start holds on the board,
+            // don't use that role even if it's the default.
 
             let indicator = commands
                 .spawn(PlacementIndicator {
                     placement_id,
-                    role_id: 12,
+                    role_id,
                 })
                 .id();
             commands.entity(board_entity).add_child(indicator);
