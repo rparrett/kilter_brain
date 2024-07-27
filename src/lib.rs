@@ -4,6 +4,7 @@ use bevy_mod_picking::DefaultPickingPlugins;
 use button::ButtonPlugin;
 use clipboard::ClipboardPlugin;
 use debug::DebugPlugin;
+use font::FontPlugin;
 use gen_api::GenApiPlugin;
 use human::HumanPlugin;
 use kilter_board::KilterBoardPlugin;
@@ -15,6 +16,7 @@ mod authoring;
 mod button;
 mod clipboard;
 mod debug;
+mod font;
 mod gen_api;
 mod human;
 mod kilter_board;
@@ -39,6 +41,7 @@ impl Plugin for AppPlugin {
             PanCamPlugin,
             DebugPlugin,
             KilterBoardPlugin,
+            FontPlugin,
         ))
         .add_plugins(DefaultPickingPlugins);
     }
