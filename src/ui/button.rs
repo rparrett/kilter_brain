@@ -1,5 +1,6 @@
-use crate::theme;
 use bevy::prelude::*;
+
+use super::theme;
 
 pub struct ButtonPlugin;
 

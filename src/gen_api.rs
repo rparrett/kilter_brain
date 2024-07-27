@@ -38,6 +38,7 @@ impl Default for GenApiSettings {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Deserialize, Default)]
 pub struct GeneratedClimb {
     pub uuid: String,

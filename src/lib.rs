@@ -1,30 +1,25 @@
 use authoring::AuthoringPlugin;
 use bevy::prelude::*;
 use bevy_mod_picking::DefaultPickingPlugins;
-use button::ButtonPlugin;
 use clipboard::ClipboardPlugin;
 use debug::DebugPlugin;
-use font::FontPlugin;
 use gen_api::GenApiPlugin;
 use human::HumanPlugin;
 use kilter_board::KilterBoardPlugin;
 use pan_cam::PanCamPlugin;
-use panels::PanelsPlugin;
 use placement_indicator::PlacementIndicatorPlugin;
+use ui::UiPlugin;
 
 mod authoring;
-mod button;
 mod clipboard;
 mod debug;
-mod font;
 mod gen_api;
 mod human;
 mod kilter_board;
 pub mod kilter_data;
 mod pan_cam;
-mod panels;
 mod placement_indicator;
-mod theme;
+mod ui;
 
 pub struct AppPlugin;
 
@@ -35,13 +30,11 @@ impl Plugin for AppPlugin {
             HumanPlugin,
             AuthoringPlugin,
             ClipboardPlugin,
-            ButtonPlugin,
-            PanelsPlugin,
             PlacementIndicatorPlugin,
             PanCamPlugin,
             DebugPlugin,
             KilterBoardPlugin,
-            FontPlugin,
+            UiPlugin,
         ))
         .add_plugins(DefaultPickingPlugins);
     }

@@ -6,7 +6,7 @@ impl Plugin for FontPlugin {
         load_internal_binary_asset!(
             app,
             Handle::default(),
-            "../assets/FiraMono-Medium.ttf",
+            "../../assets/FiraMono-Medium.ttf",
             |bytes: &[u8], _path: String| { Font::try_from_bytes(bytes.to_vec()).unwrap() }
         );
     }
