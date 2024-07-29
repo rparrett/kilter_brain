@@ -12,3 +12,6 @@ pub const HOVERED_BUTTON: Srgba = tailwind::VIOLET_600;
 pub const PRESSED_BUTTON: Srgba = tailwind::VIOLET_700;
 
 pub const CONTAINER_BG: Srgba = Srgba::new(0., 0., 0., 0.8);
+
+pub const CONTAINER_PADDING: UiRect = UiRect::all(Val::Px(12.0));
+pub const CONTAINER_BORDER_RADIUS: Val = Val::Px(10.0);

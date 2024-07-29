@@ -26,10 +26,10 @@ fn setup_nav_panel(mut commands: Commands) {
                 top: Val::Px(0.),
                 right: Val::Px(0.),
                 column_gap: Val::Px(12.),
-                padding: UiRect::all(Val::Px(12.)),
+                padding: theme::CONTAINER_PADDING,
                 ..default()
             },
-            border_radius: BorderRadius::bottom_left(Val::Px(10.)),
+            border_radius: BorderRadius::bottom_left(theme::CONTAINER_BORDER_RADIUS),
             background_color: theme::CONTAINER_BG.into(),
             ..default()
         })

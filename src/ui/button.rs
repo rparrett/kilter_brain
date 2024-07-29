@@ -44,6 +44,7 @@ pub fn button<M: Component>(commands: &mut Commands, text: &str, marker: M) -> E
                     ..default()
                 },
                 background_color: theme::NORMAL_BUTTON.into(),
+                border_radius: BorderRadius::all(Val::Px(3.)),
                 ..default()
             },
             marker,

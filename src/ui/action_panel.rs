@@ -51,12 +51,13 @@ fn setup_buttons_panel(mut commands: Commands) {
                 position_type: PositionType::Absolute,
                 bottom: Val::Px(0.),
                 right: Val::Px(0.),
-                padding: UiRect::all(Val::Px(12.)),
+                padding: theme::CONTAINER_PADDING,
                 row_gap: Val::Px(12.),
                 flex_direction: FlexDirection::Column,
                 ..default()
             },
             background_color: theme::CONTAINER_BG.into(),
+            border_radius: BorderRadius::top_left(theme::CONTAINER_BORDER_RADIUS),
             ..default()
         })
         .id();

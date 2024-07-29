@@ -50,10 +50,10 @@ fn setup_info_panel(mut commands: Commands) {
             style: Style {
                 flex_direction: FlexDirection::Column,
                 row_gap: Val::Px(3.),
-                padding: UiRect::all(Val::Px(12.)),
+                padding: theme::CONTAINER_PADDING,
                 ..default()
             },
-            border_radius: BorderRadius::bottom(Val::Px(10.)),
+            border_radius: BorderRadius::bottom(theme::CONTAINER_BORDER_RADIUS),
             background_color: theme::CONTAINER_BG.into(),
             ..default()
         })
