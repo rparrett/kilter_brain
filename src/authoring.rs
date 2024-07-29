@@ -82,36 +82,48 @@ fn cycle(
             .iter_mut()
             .find(|(_, p)| p.placement_id == placement_id);
 
-        if let Some((entity, mut placement)) = search {
-            // 12=start, 13=any, 15=foot_only, 14=finish
+        // Determine the order of roles to cycle through.
 
-            let next = match placement.role_id {
-                12 => Some(13),
-                13 => Some(15),
-                15 => Some(14),
-                14 => None,
-                _ => Some(12),
-            };
+        let first_role_id = kilter
+            .placements
+            .get(&placement_id)
+            .and_then(|p| p.default_placement_role_id)
+            .unwrap_or(13);
+
+        let mut roles = vec![
+            Some(13), // any
+            Some(15), // foot only
+            Some(12), // start
+            Some(14), // finish
+            None,
+        ];
+
+        if let Some(first_pos) = roles.iter().position(|r| *r == Some(first_role_id)) {
+            if first_pos != 0 {
+                roles.swap(first_pos, 0);
+            }
+        }
+
+        if let Some((entity, mut placement)) = search {
+            let current = roles
+                .iter()
+                .position(|r| *r == Some(placement.role_id))
+                .unwrap();
+            let next = roles.iter().cycle().skip(current + 1).next().unwrap();
 
             if let Some(next) = next {
-                placement.role_id = next;
+                placement.role_id = *next;
             } else {
                 commands.entity(entity).despawn_recursive();
             }
         } else {
-            let role_id = kilter
-                .placements
-                .get(&placement_id)
-                .and_then(|p| p.default_placement_role_id)
-                .unwrap_or(13);
-
             // TODO if there are already two start holds on the board,
             // don't use that role even if it's the default.
 
             let indicator = commands
                 .spawn(PlacementIndicator {
                     placement_id,
-                    role_id,
+                    role_id: roles.first().unwrap().unwrap(),
                 })
                 .id();
             commands.entity(board_entity).add_child(indicator);
