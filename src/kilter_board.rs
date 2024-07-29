@@ -12,6 +12,12 @@ pub struct SelectedClimb(pub usize);
 #[derive(Component)]
 pub struct Board;
 
+#[derive(Event)]
+pub enum ChangeClimbEvent {
+    Prev,
+    Next,
+}
+
 #[derive(Reflect, Resource)]
 #[reflect(Resource)]
 pub struct KilterSettings {
@@ -38,9 +44,11 @@ impl Plugin for KilterBoardPlugin {
             (
                 show_climb.before(crate::placement_indicator::update),
                 prev_next_climb,
+                change_climb,
             ),
         )
         .add_systems(Startup, setup_scene)
+        .add_event::<ChangeClimbEvent>()
         .init_resource::<SelectedClimb>()
         .init_resource::<KilterSettings>()
         .register_type::<KilterSettings>();
@@ -103,23 +111,37 @@ fn setup_scene(
     });
 }
 
-fn prev_next_climb(
-    keys: Res<ButtonInput<KeyCode>>,
+// TODO move to keyboard.rs or something
+fn prev_next_climb(keys: Res<ButtonInput<KeyCode>>, mut writer: EventWriter<ChangeClimbEvent>) {
+    if keys.just_pressed(KeyCode::ArrowRight) {
+        writer.send(ChangeClimbEvent::Next);
+    } else if keys.just_pressed(KeyCode::ArrowLeft) {
+        writer.send(ChangeClimbEvent::Prev);
+    }
+}
+
+fn change_climb(
     mut selected: ResMut<SelectedClimb>,
     kilter: Res<KilterData>,
+    mut reader: EventReader<ChangeClimbEvent>,
 ) {
-    if keys.just_pressed(KeyCode::ArrowRight) {
-        selected.0 = if selected.0 + 1 >= kilter.climbs.len() {
-            0
-        } else {
-            selected.0 + 1
-        };
-    } else if keys.just_pressed(KeyCode::ArrowLeft) {
-        selected.0 = if selected.0 == 0 {
-            kilter.climbs.len() - 1
-        } else {
-            selected.0 - 1
-        };
+    for event in reader.read() {
+        match event {
+            ChangeClimbEvent::Prev => {
+                selected.0 = if selected.0 == 0 {
+                    kilter.climbs.len() - 1
+                } else {
+                    selected.0 - 1
+                };
+            }
+            ChangeClimbEvent::Next => {
+                selected.0 = if selected.0 + 1 >= kilter.climbs.len() {
+                    0
+                } else {
+                    selected.0 + 1
+                };
+            }
+        }
     }
 }
 

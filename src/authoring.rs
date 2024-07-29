@@ -86,10 +86,11 @@ fn cycle(
             // 12=start, 13=any, 15=foot_only, 14=finish
 
             let next = match placement.role_id {
+                12 => Some(13),
                 13 => Some(15),
                 15 => Some(14),
                 14 => None,
-                _ => Some(13),
+                _ => Some(12),
             };
 
             if let Some(next) = next {
@@ -102,7 +103,7 @@ fn cycle(
                 .placements
                 .get(&placement_id)
                 .and_then(|p| p.default_placement_role_id)
-                .unwrap_or(12);
+                .unwrap_or(13);
 
             // TODO if there are already two start holds on the board,
             // don't use that role even if it's the default.
