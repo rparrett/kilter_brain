@@ -23,10 +23,6 @@ bevy = { version = "0.14", default-features = false, features = [
 version = "0.15"
 features = ["oboe-shared-stdcxx"]
 
-[profile.dist]
-inherits = "release"
-lto = "thin"
-
 [package.metadata.android]
 package = "com.rparrett.kilterbrain"
 apk_name = "KilterBrain"                  # ToDo same as GAME_OSX_APP_NAME in release workflow

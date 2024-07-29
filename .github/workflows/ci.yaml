@@ -58,7 +58,7 @@ jobs:
       - name: Install Dependencies
         run: sudo apt-get update; sudo apt-get install --no-install-recommends libx11-dev libasound2-dev libudev-dev libxkbcommon-x11-0 libxcb-shape0-dev libxcb-xfixes0-dev
       - name: Run clippy
-        run: cargo clippy --all-targets --all-features -- -D warnings
+        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
 
   format:
     name: Format
