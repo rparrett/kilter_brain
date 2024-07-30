@@ -45,36 +45,52 @@ impl Plugin for ActionPanelPlugin {
 }
 
 fn setup_buttons_panel(mut commands: Commands) {
-    let container = commands
+    let root = commands
         .spawn(NodeBundle {
             style: Style {
                 position_type: PositionType::Absolute,
                 bottom: Val::Px(0.),
-                right: Val::Px(0.),
-                padding: theme::CONTAINER_PADDING,
-                row_gap: Val::Px(12.),
-                flex_direction: FlexDirection::Column,
+                left: Val::Px(0.),
+                flex_direction: FlexDirection::Row,
+                width: Val::Percent(100.),
+                justify_content: JustifyContent::Center,
                 ..default()
             },
-            background_color: theme::CONTAINER_BG.into(),
-            border_radius: BorderRadius::top_left(theme::CONTAINER_BORDER_RADIUS),
             ..default()
         })
         .id();
 
-    let new_button = button(&mut commands, "New Climb", NewButton);
+    let container = commands
+        .spawn(NodeBundle {
+            style: Style {
+                padding: theme::CONTAINER_PADDING,
+                column_gap: Val::Px(12.),
+                flex_direction: FlexDirection::Row,
+                ..default()
+            },
+            background_color: theme::CONTAINER_BG.into(),
+            border_radius: BorderRadius::top(theme::CONTAINER_BORDER_RADIUS),
+            ..default()
+        })
+        .id();
+
+    let new_button = button(&mut commands, "New", NewButton);
     let clear_button = button(&mut commands, "Clear", ClearButton);
     let gen_button = button(&mut commands, "Gen Fill", GenButton);
     let gen_new_button = button(&mut commands, "Gen New", GenNewButton);
     let publish_button = button(&mut commands, "Publish", PublishButton);
     let open_climb_button = button(&mut commands, "Open", OpenClimbButton);
 
-    commands.entity(container).add_child(new_button);
-    commands.entity(container).add_child(clear_button);
-    commands.entity(container).add_child(gen_button);
-    commands.entity(container).add_child(gen_new_button);
-    commands.entity(container).add_child(publish_button);
-    commands.entity(container).add_child(open_climb_button);
+    commands.entity(container).push_children(&[
+        new_button,
+        clear_button,
+        gen_button,
+        gen_new_button,
+        publish_button,
+        open_climb_button,
+    ]);
+
+    commands.entity(root).add_child(container);
 }
 
 fn clear_button(

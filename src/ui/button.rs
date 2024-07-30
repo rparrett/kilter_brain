@@ -36,7 +36,6 @@ pub fn button<M: Component>(commands: &mut Commands, text: &str, marker: M) -> E
         .spawn((
             ButtonBundle {
                 style: Style {
-                    min_width: Val::Percent(100.0),
                     height: Val::Px(30.0),
                     justify_content: JustifyContent::Center,
                     align_items: AlignItems::Center,
