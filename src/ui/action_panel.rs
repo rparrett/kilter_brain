@@ -35,7 +35,7 @@ impl Plugin for ActionPanelPlugin {
             (
                 clear_button,
                 new_button,
-                gen_button,
+                gen_fill_button,
                 gen_new_button,
                 publish_button,
                 open_climb_button,
@@ -141,7 +141,7 @@ fn gen_new_button(
     }
 }
 
-fn gen_button(
+fn gen_fill_button(
     query: Query<&Interaction, (With<GenButton>, Changed<Interaction>)>,
     indicator_query: Query<&PlacementIndicator>,
     mut ev_request: EventWriter<TypedRequest<GeneratedClimb>>,
