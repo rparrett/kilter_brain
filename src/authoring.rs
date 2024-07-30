@@ -90,11 +90,15 @@ fn cycle(
             .and_then(|p| p.default_placement_role_id)
             .unwrap_or(13);
 
-        let mut roles = vec![
-            Some(13), // any
-            Some(15), // foot only
-            Some(12), // start
-            Some(14), // finish
+        let mut roles = [
+            // any
+            Some(13),
+            // foot only
+            Some(15),
+            // start
+            Some(12),
+            // finish
+            Some(14),
             None,
         ];
 
@@ -109,7 +113,7 @@ fn cycle(
                 .iter()
                 .position(|r| *r == Some(placement.role_id))
                 .unwrap();
-            let next = roles.iter().cycle().skip(current + 1).next().unwrap();
+            let next = roles.iter().cycle().nth(current + 1).unwrap();
 
             if let Some(next) = next {
                 placement.role_id = *next;
