@@ -33,7 +33,27 @@ impl Default for KilterSettings {
     }
 }
 
+#[derive(Resource)]
+pub struct BoardAngle(pub u32);
+impl Default for BoardAngle {
+    fn default() -> Self {
+        Self(40)
+    }
+}
+impl BoardAngle {
+    pub fn next(&self) -> Self {
+        Self(if self.0 + BOARD_ANGLE_STEP > MAX_BOARD_ANGLE {
+            MIN_BOARD_ANGLE
+        } else {
+            self.0 + BOARD_ANGLE_STEP
+        })
+    }
+}
+
 pub const BOARD_HEIGHT: f32 = 3.9;
+pub const MIN_BOARD_ANGLE: u32 = 0;
+pub const MAX_BOARD_ANGLE: u32 = 70;
+pub const BOARD_ANGLE_STEP: u32 = 5;
 
 pub struct KilterBoardPlugin;
 
@@ -49,6 +69,7 @@ impl Plugin for KilterBoardPlugin {
         )
         .add_systems(Startup, setup_scene)
         .add_event::<ChangeClimbEvent>()
+        .init_resource::<BoardAngle>()
         .init_resource::<SelectedClimb>()
         .init_resource::<KilterSettings>()
         .register_type::<KilterSettings>();
