@@ -4,7 +4,7 @@ use std::fmt::Write;
 use uuid::Uuid;
 
 use crate::{
-    gen_api::{GenApiSettings, GeneratedClimb},
+    gen_api::{GenApiSettings, GeneratedClimb, GeneratedClimbs},
     kilter_board::{BoardAngle, SelectedClimb},
     kilter_data::{Climb, KilterData},
     placement_indicator::PlacementIndicator,
@@ -129,15 +129,15 @@ fn new_button(
 
 fn gen_new_button(
     query: Query<&Interaction, (With<GenNewButton>, Changed<Interaction>)>,
-    mut ev_request: EventWriter<TypedRequest<GeneratedClimb>>,
+    mut ev_request: EventWriter<TypedRequest<GeneratedClimbs>>,
     api_settings: Res<GenApiSettings>,
     angle: Res<BoardAngle>,
 ) {
     if query.iter().any(|i| *i == Interaction::Pressed) {
         ev_request.send(
             HttpClient::new()
-                .get(format!("{}/generate/a{}d20", api_settings.host, angle.0))
-                .with_type::<GeneratedClimb>(),
+                .post(format!("{}/generate/a{}d20/10", api_settings.host, angle.0))
+                .with_type::<GeneratedClimbs>(),
         );
     }
 }
@@ -145,7 +145,7 @@ fn gen_new_button(
 fn gen_fill_button(
     query: Query<&Interaction, (With<GenButton>, Changed<Interaction>)>,
     indicator_query: Query<&PlacementIndicator>,
-    mut ev_request: EventWriter<TypedRequest<GeneratedClimb>>,
+    mut ev_request: EventWriter<TypedRequest<GeneratedClimbs>>,
     api_settings: Res<GenApiSettings>,
     angle: Res<BoardAngle>,
 ) {
@@ -157,11 +157,11 @@ fn gen_fill_button(
 
         ev_request.send(
             HttpClient::new()
-                .get(format!(
-                    "{}/generate/a{}d20{}",
+                .post(format!(
+                    "{}/generate/a{}d20{}/10",
                     api_settings.host, angle.0, current_frames
                 ))
-                .with_type::<GeneratedClimb>(),
+                .with_type::<GeneratedClimbs>(),
         );
     }
 }

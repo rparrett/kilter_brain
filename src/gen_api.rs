@@ -19,6 +19,8 @@ impl Plugin for GenApiPlugin {
             )
             .init_resource::<GenApiSettings>()
             .register_type::<GenApiSettings>()
+            .register_request_type::<GeneratedClimbs>()
+            // Used by publish button, for now
             .register_request_type::<GeneratedClimb>()
             .add_systems(Update, handle_response);
     }
@@ -38,6 +40,8 @@ impl Default for GenApiSettings {
     }
 }
 
+pub type GeneratedClimbs = Vec<GeneratedClimb>;
+
 #[allow(dead_code)]
 #[derive(Debug, Clone, Deserialize, Default)]
 pub struct GeneratedClimb {
@@ -50,24 +54,26 @@ pub struct GeneratedClimb {
 }
 
 fn handle_response(
-    mut ev_response: EventReader<TypedResponse<GeneratedClimb>>,
+    mut ev_response: EventReader<TypedResponse<GeneratedClimbs>>,
     mut kilter: ResMut<KilterData>,
     mut selected: ResMut<SelectedClimb>,
 ) {
     for response in ev_response.read() {
-        kilter.climbs.insert(
-            response.uuid.clone(),
-            Climb {
-                uuid: response.uuid.clone(),
-                setter_username: "API".to_string(),
-                name: response.name.clone(),
-                frames: response.frames.clone(),
-                description: response.description.clone(),
-                angle: response.angle,
-                ..default()
-            },
-        );
+        for generated_climb in &**response {
+            kilter.climbs.insert(
+                generated_climb.uuid.clone(),
+                Climb {
+                    uuid: generated_climb.uuid.clone(),
+                    setter_username: "API".to_string(),
+                    name: generated_climb.name.clone(),
+                    frames: generated_climb.frames.clone(),
+                    description: generated_climb.description.clone(),
+                    angle: generated_climb.angle,
+                    ..default()
+                },
+            );
+        }
 
-        selected.0 = kilter.climbs.len() - 1;
+        selected.0 = kilter.climbs.len() - response.len();
     }
 }
