@@ -136,7 +136,7 @@ fn gen_new_button(
     if query.iter().any(|i| *i == Interaction::Pressed) {
         ev_request.send(
             HttpClient::new()
-                .get(format!("{}/generate/a{}d15", api_settings.host, angle.0))
+                .get(format!("{}/generate/a{}d20", api_settings.host, angle.0))
                 .with_type::<GeneratedClimb>(),
         );
     }
@@ -158,7 +158,7 @@ fn gen_fill_button(
         ev_request.send(
             HttpClient::new()
                 .get(format!(
-                    "{}/generate/a{}d15{}",
+                    "{}/generate/a{}d20{}",
                     api_settings.host, angle.0, current_frames
                 ))
                 .with_type::<GeneratedClimb>(),
