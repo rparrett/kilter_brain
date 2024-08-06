@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 use bevy_http_client::RequestTask;
 
-
 use super::theme;
 
 #[derive(Component)]
