@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy_http_client::{prelude::TypedRequest, HttpClient};
+use serde::Serialize;
 use std::fmt::Write;
 use uuid::Uuid;
 
@@ -26,6 +27,12 @@ struct GenNewButton;
 struct PublishButton;
 #[derive(Component)]
 struct OpenClimbButton;
+
+#[derive(Serialize)]
+struct GenerateRequest {
+    prompt: String,
+    num: usize,
+}
 
 impl Plugin for ActionPanelPlugin {
     fn build(&self, app: &mut App) {
@@ -134,9 +141,15 @@ fn gen_new_button(
     angle: Res<BoardAngle>,
 ) {
     if query.iter().any(|i| *i == Interaction::Pressed) {
+        let request = GenerateRequest {
+            prompt: format!("a{}d20", angle.0),
+            num: 10,
+        };
+
         ev_request.send(
             HttpClient::new()
-                .post(format!("{}/generate/a{}d20/10", api_settings.host, angle.0))
+                .post(format!("{}/generate", api_settings.host))
+                .json(&request)
                 .with_type::<GeneratedClimbs>(),
         );
     }
@@ -155,12 +168,15 @@ fn gen_fill_button(
             out
         });
 
+        let request = GenerateRequest {
+            prompt: format!("a{}d20{}", angle.0, current_frames),
+            num: 10,
+        };
+
         ev_request.send(
             HttpClient::new()
-                .post(format!(
-                    "{}/generate/a{}d20{}/10",
-                    api_settings.host, angle.0, current_frames
-                ))
+                .post(format!("{}/generate", api_settings.host))
+                .json(&request)
                 .with_type::<GeneratedClimbs>(),
         );
     }
