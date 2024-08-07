@@ -48,7 +48,6 @@ fn prev_button(
     mut writer: EventWriter<ChangeClimbEvent>,
 ) {
     if query.iter().any(|i| *i == Interaction::Pressed) {
-        info!("!");
         writer.send(ChangeClimbEvent::Prev);
     }
 }
