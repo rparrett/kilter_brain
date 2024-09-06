@@ -2,7 +2,6 @@ use bevy::{ecs::system::SystemParam, prelude::*, utils::HashMap};
 use bevy_mod_picking::picking_core::Pickable;
 
 use std::fmt::Display;
-
 use crate::{kilter_board::KilterSettings, kilter_data::KilterData};
 
 pub struct PlacementIndicatorPlugin;

@@ -16,6 +16,7 @@ pub struct Board;
 pub enum ChangeClimbEvent {
     Prev,
     Next,
+    SelectByIndex(usize),
 }
 
 #[derive(Reflect, Resource)]
@@ -112,6 +113,9 @@ fn setup_scene(
             mesh: meshes.add(Rectangle::new(board_width, BOARD_HEIGHT)),
             material: materials.add(StandardMaterial {
                 base_color_texture: Some(asset_server.load("original-16x12.png")),
+                base_color: Color::srgba(1.0, 1.0, 1.0, 0.7),
+                perceptual_roughness: 1.0,
+                alpha_mode: AlphaMode::Blend,
                 ..default()
             }),
             ..default()
@@ -161,6 +165,9 @@ fn change_climb(
                 } else {
                     selected.0 + 1
                 };
+            }
+            ChangeClimbEvent::SelectByIndex(id) => {
+                selected.0 = *id;
             }
         }
     }
