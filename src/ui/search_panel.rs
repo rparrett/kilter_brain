@@ -11,7 +11,7 @@ struct SearchField;
 #[derive(Component)]
 struct SearchResultsPanel;
 #[derive(Component)]
-struct SearchResultItem;
+struct SearchResultItem(usize);
 #[derive(Component)]
 struct SearchPanel;
 
@@ -115,7 +115,7 @@ fn update_search_results(
                     background_color: theme::CONTAINER_BG.into(),
                     ..default()
                 },
-                SearchResultItem,
+                SearchResultItem(*climb_idx),
             ))
             .with_children(|parent| {
                 parent.spawn(TextBundle::from_section(
@@ -134,23 +134,12 @@ fn update_search_results(
 }
 
 fn handle_search_result_click(
-    query: Query<(&Interaction, &Children), (Changed<Interaction>, With<SearchResultItem>)>,
-    text_query: Query<&Text>,
+    query: Query<(&Interaction, &SearchResultItem), (Changed<Interaction>, With<SearchResultItem>)>,
     mut writer: EventWriter<ChangeClimbEvent>,
 ) {
-    for (interaction, children) in query.iter() {
+    for (interaction, item) in &query {
         if *interaction == Interaction::Pressed {
-            if let Ok(text) = text_query.get(children[0]) {
-                println!("Clicked on: {}", text.sections[0].value);
-                let climb_id = text.sections[0]
-                    .value
-                    .split(":")
-                    .next()
-                    .unwrap()
-                    .parse()
-                    .unwrap();
-                writer.send(ChangeClimbEvent::SelectByIndex(climb_id));
-            }
+            writer.send(ChangeClimbEvent::SelectByIndex(item.0));
         }
     }
 }
