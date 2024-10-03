@@ -27,9 +27,7 @@ impl Plugin for SearchPanelPlugin {
     }
 }
 
-fn setup_search_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let font = asset_server.load("../assets/FiraMono-Medium.ttf");
-
+fn setup_search_ui(mut commands: Commands) {
     commands
         .spawn(NodeBundle {
             style: Style {
@@ -50,9 +48,9 @@ fn setup_search_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
                 TextBundle::from_section(
                     "search",
                     TextStyle {
-                        font: font.clone(),
                         font_size: theme::FONT_SIZE,
                         color: Color::WHITE,
+                        ..default()
                     },
                 ),
                 SearchField,
@@ -124,7 +122,6 @@ fn update_search_results(
     mut results_panel: Query<(Entity, &mut Visibility), With<SearchResultsPanel>>,
     children_query: Query<&Children>,
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
 ) {
     if search_field.is_empty() {
         return;
@@ -138,8 +135,6 @@ fn update_search_results(
     let Ok((panel_entity, mut visibility)) = results_panel.get_single_mut() else {
         return;
     };
-
-    let font = asset_server.load("../assets/FiraMono-Medium.ttf");
 
     if search_text.len() >= 3 {
         *visibility = Visibility::Visible;
@@ -174,9 +169,9 @@ fn update_search_results(
                     parent.spawn(TextBundle::from_section(
                         format!("{}: {}", climb_idx, climb.name.clone()),
                         TextStyle {
-                            font: font.clone(),
                             font_size: theme::FONT_SIZE_SM,
                             color: Color::WHITE,
+                            ..default()
                         },
                     ));
                 })
