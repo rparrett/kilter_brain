@@ -51,7 +51,7 @@ fn setup_search_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
                     "search",
                     TextStyle {
                         font: font.clone(),
-                        font_size: 16.0,
+                        font_size: theme::FONT_SIZE,
                         color: Color::WHITE,
                     },
                 ),
@@ -175,7 +175,7 @@ fn update_search_results(
                         format!("{}: {}", climb_idx, climb.name.clone()),
                         TextStyle {
                             font: font.clone(),
-                            font_size: 14.0,
+                            font_size: theme::FONT_SIZE_SM,
                             color: Color::WHITE,
                         },
                     ));
