@@ -1,5 +1,9 @@
 # Kilter Helper
 
+An alternative Kilter Board climb editor / viewer.
+
+AI route-setting via [`kilter_brain_gen`](https://github.com/rparrett/kilter_brain_gen).
+
 ## TODO
 
 - native: Automatic updates from kilter API
@@ -10,14 +14,13 @@
 - web: Figure out how to handle pastes when the canvas is focused
 - web: Add the neat JS progress bar from the Bevy example showcase
 - Add generic UI toast to show frame parsing errors, network errors, paste results, etc
-- Add little spinny network indicator -- just count the number of http request entities
 - Make frame parser more permissive to whitespace?
 - Let users search the routes database for other climbs with the selected holds
-- Add zooming and panning where zooming all the way out also re-centers you
-- Let users change the angle of the board
+- Board angle setting should affect the appearance of the board
 - Add a measuring tape
 - Add a "max armspan required" stat?
   Is this even possible? Do delaunay, then djikstras, then find the longest edge of the shortest path?
+- Make the "dude for scale" a ragdoll that can be dragged onto the board
 
 ## To get a recent APK
 
