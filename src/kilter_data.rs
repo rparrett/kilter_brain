@@ -183,7 +183,7 @@ impl KilterData {
             .iter()
             .map(|(_, climb)| climb)
             .enumerate()
-            .filter(|(idx, climb)| climb.name.contains(name) || idx.to_string().contains(name)) 
+            .filter(|(idx, climb)| climb.name.contains(name) || idx.to_string().contains(name))
             .collect()
     }
 
