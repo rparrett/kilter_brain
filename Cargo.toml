@@ -8,9 +8,12 @@ members = ["mobile"]
 
 [dependencies]
 bevy = { version = "0.14" }
-bevy-inspector-egui = "0.25"
+bevy-inspector-egui = "0.26"
 bevy_http_client = "0.6"
-bevy_mod_picking = { version = "0.20", features = ["backend_egui"] }
+# Use this PR temporarily. `bevy_egui` 0.28 seems to no longer work on wasm.
+bevy_mod_picking = { git = "https://github.com/no-materials/bevy_mod_picking.git", branch = "bump-bevy-egui", features = [
+    "backend_egui",
+] }
 combine = "4.6.6"
 indexmap = "2.2.6"
 serde = "1.0.196"
