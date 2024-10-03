@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_simple_text_input::{TextInputBundle, TextInputValue};
 
 use super::theme;
 
@@ -11,175 +12,124 @@ struct SearchField;
 struct SearchResultsPanel;
 #[derive(Component)]
 struct SearchResultItem;
+#[derive(Component)]
+struct SearchPanel;
 
 pub struct SearchPanelPlugin;
 
 impl Plugin for SearchPanelPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, setup_search_ui).add_systems(
-            Update,
-            (
-                update_search_field,
-                update_search_results,
-                handle_search_result_click,
-            ),
-        );
+        app.add_systems(Startup, setup_search_ui)
+            .add_systems(Update, (update_search_results, handle_search_result_click));
     }
 }
 
 fn setup_search_ui(mut commands: Commands) {
     commands
-        .spawn(NodeBundle {
-            style: Style {
-                position_type: PositionType::Absolute,
-                top: Val::Px(60.),
-                right: Val::Px(0.),
-                width: Val::Px(200.),
-                height: Val::Px(30.),
-                padding: theme::CONTAINER_PADDING,
-                ..default()
-            },
-            border_radius: BorderRadius::top_left(theme::CONTAINER_BORDER_RADIUS),
-            background_color: theme::CONTAINER_BG.into(),
-            ..default()
-        })
-        .with_children(|parent| {
-            parent.spawn((
-                TextBundle::from_section(
-                    "search",
-                    TextStyle {
-                        font_size: theme::FONT_SIZE,
-                        color: theme::FONT_COLOR.into(),
-                        ..default()
-                    },
-                ),
-                SearchField,
-            ));
-        });
-
-    commands
         .spawn((
+            Name::new("SearchPanel"),
+            SearchPanel,
             NodeBundle {
                 style: Style {
+                    flex_direction: FlexDirection::Column,
                     position_type: PositionType::Absolute,
-                    top: Val::Px(80.),
+                    top: Val::Px(60.),
                     right: Val::Px(0.),
                     width: Val::Px(200.),
                     padding: theme::CONTAINER_PADDING,
-                    flex_direction: FlexDirection::Column,
+                    row_gap: Val::Px(5.),
                     ..default()
                 },
-                border_radius: BorderRadius::bottom_left(theme::CONTAINER_BORDER_RADIUS),
+                border_radius: BorderRadius::left(theme::CONTAINER_BORDER_RADIUS),
                 background_color: theme::CONTAINER_BG.into(),
-                visibility: Visibility::Hidden,
                 ..default()
             },
-            SearchResultsPanel,
         ))
         .with_children(|parent| {
-            parent.spawn(NodeBundle {
-                style: Style {
-                    width: Val::Px(0.),
-                    height: Val::Px(0.),
+            parent.spawn((
+                NodeBundle::default(),
+                TextInputBundle::default().with_text_style(TextStyle {
+                    font_size: theme::FONT_SIZE,
+                    color: theme::FONT_COLOR.into(),
+                    ..default()
+                }),
+                SearchField,
+            ));
+            parent.spawn((
+                NodeBundle {
+                    style: Style {
+                        flex_direction: FlexDirection::Column,
+                        row_gap: Val::Px(5.),
+                        ..default()
+                    },
                     ..default()
                 },
-                ..default()
-            });
+                SearchResultsPanel,
+            ));
         });
 }
 
-fn update_search_field(
-    mut query: Query<&mut Text, With<SearchField>>,
-    keyboard_input: Res<ButtonInput<KeyCode>>,
-    time: Res<Time>,
-) {
-    let mut text = query.single_mut();
-    let shift_pressed =
-        keyboard_input.pressed(KeyCode::ShiftLeft) || keyboard_input.pressed(KeyCode::ShiftRight);
-
-    for key in keyboard_input.get_just_pressed() {
-        if let Some(char) = key_to_char(*key, shift_pressed) {
-            if text.sections[0].value.len() < 20 {
-                text.sections[0].value.push(char);
-            }
-        }
-    }
-    // Handle backspace with repeat
-    if keyboard_input.pressed(KeyCode::Backspace) {
-        if shift_pressed {
-            text.sections[0].value.clear();
-        } else if keyboard_input.just_pressed(KeyCode::Backspace)
-            || time.elapsed_seconds().fract() < 0.05
-        {
-            text.sections[0].value.pop();
-        }
-    }
-}
-
 fn update_search_results(
-    search_field: Query<&Text, With<SearchField>>,
+    search_field: Query<&TextInputValue, (With<SearchField>, Changed<TextInputValue>)>,
     kilter: Res<KilterData>,
-    mut results_panel: Query<(Entity, &mut Visibility), With<SearchResultsPanel>>,
-    children_query: Query<&Children>,
+    results_panel: Query<Entity, With<SearchResultsPanel>>,
+    mut search_panel: Query<&mut Style, With<SearchPanel>>,
     mut commands: Commands,
 ) {
-    if search_field.is_empty() {
+    let Ok(search_text) = search_field.get_single() else {
+        return;
+    };
+
+    let Ok(panel_entity) = results_panel.get_single() else {
+        return;
+    };
+
+    let Ok(mut panel_style) = search_panel.get_single_mut() else {
+        return;
+    };
+
+    if search_text.0.is_empty() {
+        panel_style.display = Display::None;
         return;
     }
-    let Ok(search_text) = search_field
-        .get_single()
-        .map(|text| &text.sections[0].value)
-    else {
+
+    panel_style.display = Display::Flex;
+
+    // Despawn existing search result entities
+    commands.entity(panel_entity).despawn_descendants();
+
+    let results = kilter.search_by_name(&search_text.0);
+    if results.is_empty() {
         return;
-    };
-    let Ok((panel_entity, mut visibility)) = results_panel.get_single_mut() else {
-        return;
-    };
+    }
 
-    if search_text.len() >= 3 {
-        *visibility = Visibility::Visible;
-
-        // Despawn existing children
-        if let Ok(children) = children_query.get(panel_entity) {
-            for &child in children.iter() {
-                commands.entity(child).despawn_recursive();
-            }
-        }
-        let results = kilter.search_by_name(search_text); // IndexMap<usize, &Climb>
-        if results.is_empty() {
-            return;
-        }
-
-        for (climb_idx, climb) in results.iter().take(10) {
-            let result = commands
-                .spawn((
-                    ButtonBundle {
-                        style: Style {
-                            width: Val::Percent(100.),
-                            height: Val::Px(40.),
-                            padding: theme::CONTAINER_PADDING,
-                            ..default()
-                        },
-                        background_color: theme::CONTAINER_BG.into(),
+    for (climb_idx, climb) in results.iter().take(10) {
+        let result = commands
+            .spawn((
+                ButtonBundle {
+                    style: Style {
+                        width: Val::Percent(100.),
+                        padding: theme::CONTAINER_PADDING,
                         ..default()
                     },
-                    SearchResultItem,
-                ))
-                .with_children(|parent| {
-                    parent.spawn(TextBundle::from_section(
-                        format!("{}: {}", climb_idx, climb.name.clone()),
-                        TextStyle {
-                            font_size: theme::FONT_SIZE_SM,
-                            color: theme::FONT_COLOR.into(),
-                            ..default()
-                        },
-                    ));
-                })
-                .id();
-            commands.entity(panel_entity).add_child(result);
-        }
-    } else {
-        *visibility = Visibility::Hidden;
+                    background_color: theme::CONTAINER_BG.into(),
+                    ..default()
+                },
+                SearchResultItem,
+            ))
+            .with_children(|parent| {
+                parent.spawn(TextBundle::from_section(
+                    format!("{}: {}", climb_idx, climb.name),
+                    TextStyle {
+                        font_size: theme::FONT_SIZE_SM,
+                        color: theme::FONT_COLOR.into(),
+                        ..default()
+                    },
+                ));
+            })
+            .id();
+
+        commands.entity(panel_entity).add_child(result);
     }
 }
 
@@ -202,51 +152,5 @@ fn handle_search_result_click(
                 writer.send(ChangeClimbEvent::SelectByIndex(climb_id));
             }
         }
-    }
-}
-
-fn key_to_char(key: KeyCode, shift_pressed: bool) -> Option<char> {
-    match key {
-        KeyCode::KeyA => Some(if shift_pressed { 'A' } else { 'a' }),
-        KeyCode::KeyB => Some(if shift_pressed { 'B' } else { 'b' }),
-        KeyCode::KeyC => Some(if shift_pressed { 'C' } else { 'c' }),
-        KeyCode::KeyD => Some(if shift_pressed { 'D' } else { 'd' }),
-        KeyCode::KeyE => Some(if shift_pressed { 'E' } else { 'e' }),
-        KeyCode::KeyF => Some(if shift_pressed { 'F' } else { 'f' }),
-        KeyCode::KeyG => Some(if shift_pressed { 'G' } else { 'g' }),
-        KeyCode::KeyH => Some(if shift_pressed { 'H' } else { 'h' }),
-        KeyCode::KeyI => Some(if shift_pressed { 'I' } else { 'i' }),
-        KeyCode::KeyJ => Some(if shift_pressed { 'J' } else { 'j' }),
-        KeyCode::KeyK => Some(if shift_pressed { 'K' } else { 'k' }),
-        KeyCode::KeyL => Some(if shift_pressed { 'L' } else { 'l' }),
-        KeyCode::KeyM => Some(if shift_pressed { 'M' } else { 'm' }),
-        KeyCode::KeyN => Some(if shift_pressed { 'N' } else { 'n' }),
-        KeyCode::KeyO => Some(if shift_pressed { 'O' } else { 'o' }),
-        KeyCode::KeyP => Some(if shift_pressed { 'P' } else { 'p' }),
-        KeyCode::KeyQ => Some(if shift_pressed { 'Q' } else { 'q' }),
-        KeyCode::KeyR => Some(if shift_pressed { 'R' } else { 'r' }),
-        KeyCode::KeyS => Some(if shift_pressed { 'S' } else { 's' }),
-        KeyCode::KeyT => Some(if shift_pressed { 'T' } else { 't' }),
-        KeyCode::KeyU => Some(if shift_pressed { 'U' } else { 'u' }),
-        KeyCode::KeyV => Some(if shift_pressed { 'V' } else { 'v' }),
-        KeyCode::KeyW => Some(if shift_pressed { 'W' } else { 'w' }),
-        KeyCode::KeyX => Some(if shift_pressed { 'X' } else { 'x' }),
-        KeyCode::KeyY => Some(if shift_pressed { 'Y' } else { 'y' }),
-        KeyCode::KeyZ => Some(if shift_pressed { 'Z' } else { 'z' }),
-        KeyCode::Space => Some(' '),
-        KeyCode::Semicolon => Some(if shift_pressed { ':' } else { ';' }),
-        KeyCode::Digit1 => Some(if shift_pressed { '!' } else { '1' }),
-        KeyCode::Digit2 => Some(if shift_pressed { '@' } else { '2' }),
-        KeyCode::Digit3 => Some(if shift_pressed { '#' } else { '3' }),
-        KeyCode::Digit4 => Some(if shift_pressed { '$' } else { '4' }),
-        KeyCode::Digit5 => Some(if shift_pressed { '%' } else { '5' }),
-        KeyCode::Digit6 => Some(if shift_pressed { '^' } else { '6' }),
-        KeyCode::Digit7 => Some(if shift_pressed { '&' } else { '7' }),
-        KeyCode::Digit8 => Some(if shift_pressed { '*' } else { '8' }),
-        KeyCode::Digit9 => Some(if shift_pressed { '(' } else { '9' }),
-        KeyCode::Digit0 => Some(if shift_pressed { ')' } else { '0' }),
-        KeyCode::Minus => Some(if shift_pressed { '_' } else { '-' }),
-        KeyCode::Equal => Some(if shift_pressed { '+' } else { '=' }),
-        _ => None,
     }
 }
