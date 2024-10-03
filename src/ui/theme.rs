@@ -1,6 +1,7 @@
 use bevy::{color::palettes::tailwind, prelude::*};
 
 pub const FONT_SIZE: f32 = 16.0;
+pub const FONT_SIZE_SM: f32 = 14.0;
 
 pub const FONT_COLOR: Srgba = tailwind::VIOLET_50;
 pub const FONT_COLOR_EMPHASIS: Srgba = tailwind::VIOLET_300;

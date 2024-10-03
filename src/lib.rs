@@ -1,6 +1,7 @@
 use authoring::AuthoringPlugin;
 use bevy::prelude::*;
 use bevy_mod_picking::DefaultPickingPlugins;
+use bevy_simple_text_input::TextInputPlugin;
 use clipboard::ClipboardPlugin;
 use debug::DebugPlugin;
 use gen_api::GenApiPlugin;
@@ -36,6 +37,6 @@ impl Plugin for AppPlugin {
             KilterBoardPlugin,
             UiPlugin,
         ))
-        .add_plugins(DefaultPickingPlugins);
+        .add_plugins((DefaultPickingPlugins, TextInputPlugin));
     }
 }

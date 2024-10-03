@@ -178,6 +178,15 @@ impl KilterData {
         Ok(())
     }
 
+    pub fn search_by_name(&self, name: &str) -> Vec<(usize, &Climb)> {
+        self.climbs
+            .iter()
+            .map(|(_, climb)| climb)
+            .enumerate()
+            .filter(|(idx, climb)| climb.name.contains(name) || idx.to_string().contains(name))
+            .collect()
+    }
+
     pub fn json_update_reader<R: Read>(&mut self, reader: R) {
         let val: Value = serde_json::from_reader(reader).unwrap();
 
