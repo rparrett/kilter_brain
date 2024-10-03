@@ -49,7 +49,7 @@ fn setup_search_ui(mut commands: Commands) {
                     "search",
                     TextStyle {
                         font_size: theme::FONT_SIZE,
-                        color: Color::WHITE,
+                        color: theme::FONT_COLOR.into(),
                         ..default()
                     },
                 ),
@@ -170,7 +170,7 @@ fn update_search_results(
                         format!("{}: {}", climb_idx, climb.name.clone()),
                         TextStyle {
                             font_size: theme::FONT_SIZE_SM,
-                            color: Color::WHITE,
+                            color: theme::FONT_COLOR.into(),
                             ..default()
                         },
                     ));
