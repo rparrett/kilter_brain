@@ -1,5 +1,9 @@
-use bevy::{input::gestures::PinchGesture, prelude::*};
-use bevy_mod_picking::events::{Click, DragEnd, Pointer};
+use bevy::{
+    input::gestures::PinchGesture,
+    picking::events::{Click, DragEnd, Pointer},
+    prelude::*,
+};
+
 use uuid::Uuid;
 
 use std::fmt::Write;

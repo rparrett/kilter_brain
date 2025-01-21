@@ -20,8 +20,8 @@ impl Plugin for NavPanelPlugin {
 
 fn setup_nav_panel(mut commands: Commands) {
     let container = commands
-        .spawn(NodeBundle {
-            style: Style {
+        .spawn((
+            Node {
                 position_type: PositionType::Absolute,
                 top: Val::Px(0.),
                 right: Val::Px(0.),
@@ -29,10 +29,9 @@ fn setup_nav_panel(mut commands: Commands) {
                 padding: theme::CONTAINER_PADDING,
                 ..default()
             },
-            border_radius: BorderRadius::bottom_left(theme::CONTAINER_BORDER_RADIUS),
-            background_color: theme::CONTAINER_BG.into(),
-            ..default()
-        })
+            BorderRadius::bottom_left(theme::CONTAINER_BORDER_RADIUS),
+            BackgroundColor(theme::CONTAINER_BG.into()),
+        ))
         .id();
 
     let prev_button = button(&mut commands, "←", PrevButton);
@@ -40,7 +39,7 @@ fn setup_nav_panel(mut commands: Commands) {
 
     commands
         .entity(container)
-        .push_children(&[prev_button, next_button]);
+        .add_children(&[prev_button, next_button]);
 }
 
 fn prev_button(

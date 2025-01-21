@@ -1,6 +1,5 @@
 use authoring::AuthoringPlugin;
 use bevy::prelude::*;
-use bevy_mod_picking::DefaultPickingPlugins;
 use bevy_simple_text_input::TextInputPlugin;
 use clipboard::ClipboardPlugin;
 use debug::DebugPlugin;
@@ -26,6 +25,10 @@ pub struct AppPlugin;
 
 impl Plugin for AppPlugin {
     fn build(&self, app: &mut App) {
+        // Bevy plugins
+        app.add_plugins(MeshPickingPlugin);
+
+        // Our plugins
         app.add_plugins((
             GenApiPlugin,
             HumanPlugin,
@@ -36,7 +39,9 @@ impl Plugin for AppPlugin {
             DebugPlugin,
             KilterBoardPlugin,
             UiPlugin,
-        ))
-        .add_plugins((DefaultPickingPlugins, TextInputPlugin));
+        ));
+
+        // Third-party Plugins
+        app.add_plugins(TextInputPlugin);
     }
 }

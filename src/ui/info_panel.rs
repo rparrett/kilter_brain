@@ -34,37 +34,30 @@ struct ClimbMoreInfo;
 
 fn setup_info_panel(mut commands: Commands) {
     let root = commands
-        .spawn(NodeBundle {
-            style: Style {
-                flex_direction: FlexDirection::Row,
-                width: Val::Percent(100.),
-                justify_content: JustifyContent::Center,
-                ..default()
-            },
+        .spawn(Node {
+            flex_direction: FlexDirection::Row,
+            width: Val::Percent(100.),
+            justify_content: JustifyContent::Center,
             ..default()
         })
         .id();
 
     let container = commands
-        .spawn(NodeBundle {
-            style: Style {
+        .spawn((
+            Node {
                 flex_direction: FlexDirection::Column,
                 row_gap: Val::Px(3.),
                 padding: theme::CONTAINER_PADDING,
                 ..default()
             },
-            border_radius: BorderRadius::bottom(theme::CONTAINER_BORDER_RADIUS),
-            background_color: theme::CONTAINER_BG.into(),
-            ..default()
-        })
+            BorderRadius::bottom(theme::CONTAINER_BORDER_RADIUS),
+            BackgroundColor(theme::CONTAINER_BG.into()),
+        ))
         .with_children(|parent| {
             parent
                 .spawn((
-                    NodeBundle {
-                        style: Style {
-                            column_gap: Val::Px(5.),
-                            ..default()
-                        },
+                    Node {
+                        column_gap: Val::Px(5.),
                         ..default()
                     },
                     ClimbInfo,
@@ -72,97 +65,79 @@ fn setup_info_panel(mut commands: Commands) {
                 ))
                 .with_children(|parent| {
                     parent.spawn((
-                        TextBundle::from_section(
-                            "Name".to_string(),
-                            TextStyle {
-                                font_size: theme::FONT_SIZE,
-                                color: theme::FONT_COLOR_EMPHASIS.into(),
-                                ..default()
-                            },
-                        ),
+                        Text::new("Name".to_string()),
+                        TextFont {
+                            font_size: theme::FONT_SIZE,
+                            ..default()
+                        },
+                        TextColor(theme::FONT_COLOR_EMPHASIS.into()),
                         ClimbNameText,
                     ));
 
                     parent.spawn((
-                        TextBundle::from_section(
-                            "by Author".to_string(),
-                            TextStyle {
-                                font_size: theme::FONT_SIZE,
-                                color: theme::FONT_COLOR_MUTED.into(),
-                                ..default()
-                            },
-                        ),
+                        Text::new("by Author".to_string()),
+                        TextFont {
+                            font_size: theme::FONT_SIZE,
+                            ..default()
+                        },
+                        TextColor(theme::FONT_COLOR_MUTED.into()),
                         ClimbAuthorText,
                     ));
                 });
 
             parent
                 .spawn((
-                    NodeBundle {
-                        style: Style {
-                            flex_direction: FlexDirection::Column,
-                            row_gap: Val::Px(3.),
-                            display: Display::None,
-                            ..default()
-                        },
+                    Node {
+                        flex_direction: FlexDirection::Column,
+                        row_gap: Val::Px(3.),
+                        display: Display::None,
                         ..default()
                     },
                     ClimbMoreInfo,
                 ))
                 .with_children(|parent| {
                     parent.spawn((
-                        TextBundle::from_section(
-                            "(No Description)".to_string(),
-                            TextStyle {
-                                font_size: theme::FONT_SIZE,
-                                color: theme::FONT_COLOR.into(),
-                                ..default()
-                            },
-                        ),
+                        Text::new("(No Description)".to_string()),
+                        TextFont {
+                            font_size: theme::FONT_SIZE,
+                            ..default()
+                        },
+                        TextColor(theme::FONT_COLOR.into()),
                         ClimbDescriptionText,
                     ));
                     parent.spawn((
-                        TextBundle::from_section(
-                            "Setter Angle: 40°".to_string(),
-                            TextStyle {
-                                font_size: theme::FONT_SIZE,
-                                color: theme::FONT_COLOR.into(),
-                                ..default()
-                            },
-                        ),
+                        Text::new("Setter Angle: 40°".to_string()),
+                        TextFont {
+                            font_size: theme::FONT_SIZE,
+                            ..default()
+                        },
+                        TextColor(theme::FONT_COLOR.into()),
                         ClimbAngleText,
                     ));
                     parent.spawn((
-                        TextBundle::from_section(
-                            "Draft:".to_string(),
-                            TextStyle {
-                                font_size: theme::FONT_SIZE,
-                                color: theme::FONT_COLOR.into(),
-                                ..default()
-                            },
-                        ),
-                        ClimbDraftText,
+                        Text::new("Draft:".to_string()),
+                        TextFont {
+                            font_size: theme::FONT_SIZE,
+                            ..default()
+                        },
+                        TextColor(theme::FONT_COLOR.into()),
                     ));
                     parent.spawn((
-                        TextBundle::from_section(
-                            "Listed:".to_string(),
-                            TextStyle {
-                                font_size: theme::FONT_SIZE,
-                                color: theme::FONT_COLOR.into(),
-                                ..default()
-                            },
-                        ),
+                        Text::new("Listed:".to_string()),
+                        TextFont {
+                            font_size: theme::FONT_SIZE,
+                            ..default()
+                        },
+                        TextColor(theme::FONT_COLOR.into()),
                         ClimbListedText,
                     ));
                     parent.spawn((
-                        TextBundle::from_section(
-                            "UUID".to_string(),
-                            TextStyle {
-                                font_size: theme::FONT_SIZE,
-                                color: theme::FONT_COLOR.into(),
-                                ..default()
-                            },
-                        ),
+                        Text::new("UUID".to_string()),
+                        TextFont {
+                            font_size: theme::FONT_SIZE,
+                            ..default()
+                        },
+                        TextColor(theme::FONT_COLOR.into()),
                         ClimbUuidText,
                     ));
                 });
@@ -200,7 +175,7 @@ fn update_selected_climb(
     let Ok(mut name_text) = text_query.get_mut(name_entity) else {
         return;
     };
-    name_text.sections[0].value.clone_from(&climb.name);
+    name_text.0.clone_from(&climb.name);
 
     let Ok(author_entity) = climb_author_text_query.get_single() else {
         return;
@@ -208,8 +183,8 @@ fn update_selected_climb(
     let Ok(mut author_text) = text_query.get_mut(author_entity) else {
         return;
     };
-    author_text.sections[0]
-        .value
+    author_text
+        .0
         .clone_from(&format!("by {}", &climb.setter_username));
 
     let Ok(angle_entity) = climb_angle_text_query.get_single() else {
@@ -218,7 +193,7 @@ fn update_selected_climb(
     let Ok(mut angle_text) = text_query.get_mut(angle_entity) else {
         return;
     };
-    angle_text.sections[0].value.clone_from(
+    angle_text.0.clone_from(
         &climb
             .angle
             .map(|a| format!("Setter Angle: {}°", a))
@@ -232,11 +207,9 @@ fn update_selected_climb(
         return;
     };
     if !climb.description.is_empty() {
-        description_text.sections[0]
-            .value
-            .clone_from(&climb.description);
+        description_text.0.clone_from(&climb.description);
     } else {
-        description_text.sections[0].value = "No Description".to_string();
+        description_text.0 = "No Description".to_string();
     }
 
     let Ok(uuid_entity) = climb_uuid_text_query.get_single() else {
@@ -245,7 +218,7 @@ fn update_selected_climb(
     let Ok(mut uuid_text) = text_query.get_mut(uuid_entity) else {
         return;
     };
-    uuid_text.sections[0].value.clone_from(&climb.uuid);
+    uuid_text.0.clone_from(&climb.uuid);
 
     let Ok(draft_entity) = climb_draft_text_query.get_single() else {
         return;
@@ -253,8 +226,8 @@ fn update_selected_climb(
     let Ok(mut draft_text) = text_query.get_mut(draft_entity) else {
         return;
     };
-    draft_text.sections[0]
-        .value
+    draft_text
+        .0
         .clone_from(&format!("Draft: {:?}", climb.is_draft));
 
     let Ok(listed_entity) = climb_listed_text_query.get_single() else {
@@ -263,27 +236,18 @@ fn update_selected_climb(
     let Ok(mut listed_text) = text_query.get_mut(listed_entity) else {
         return;
     };
-    listed_text.sections[0]
-        .value
+    listed_text
+        .0
         .clone_from(&format!("Listed: {:?}", climb.is_listed));
-
-    // text.sections[0].value = format!("{}/{}", selected.0 + 1, kilter.climbs.len());
-    // text.sections[2].value.clone_from(&climb.uuid);
-    // text.sections[4].value.clone_from(&climb.name);
-    // text.sections[6].value.clone_from(&climb.setter_username);
-    // text.sections[8].value.clone_from(&climb.description);
-    // text.sections[10].value = format!("Angle: {:?}", climb.angle);
-    // text.sections[12].value = format!("Draft: {:?}", climb.is_draft);
-    // text.sections[14].value = format!("Listed: {:?}", climb.is_listed);
 }
 
 fn toggle_more_info(
     interaction_query: Query<&Interaction, (Changed<Interaction>, With<ClimbInfo>)>,
-    mut more_info_query: Query<&mut Style, With<ClimbMoreInfo>>,
+    mut more_info_query: Query<&mut Node, With<ClimbMoreInfo>>,
 ) {
     if interaction_query.iter().any(|i| *i == Interaction::Pressed) {
-        if let Ok(mut style) = more_info_query.get_single_mut() {
-            style.display = if style.display == Display::Flex {
+        if let Ok(mut node) = more_info_query.get_single_mut() {
+            node.display = if node.display == Display::Flex {
                 Display::None
             } else {
                 Display::Flex

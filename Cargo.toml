@@ -7,13 +7,10 @@ edition = "2021"
 members = ["mobile"]
 
 [dependencies]
-bevy = { version = "0.14" }
-bevy-inspector-egui = "0.26"
-bevy_http_client = "0.6"
-# Use this PR temporarily. `bevy_egui` 0.28 seems to no longer work on wasm.
-bevy_mod_picking = { git = "https://github.com/no-materials/bevy_mod_picking.git", branch = "bump-bevy-egui", features = [
-    "backend_egui",
-] }
+bevy = { version = "0.15" }
+bevy-inspector-egui = "0.28"
+bevy_http_client = "0.7"
+bevy_simple_text_input = "0.10"
 combine = "4.6.6"
 indexmap = "2.2.6"
 serde = "1.0.196"
@@ -27,7 +24,6 @@ log = { version = "0.4", features = [
     "release_max_level_warn",
 ] }
 webbrowser = "1.0.1"
-bevy_simple_text_input = "0.9.2"
 
 [target.'cfg(not(any(target_arch = "wasm32", target_os="android", target_os="ios")))'.dependencies]
 clipboard = "0.5.0"

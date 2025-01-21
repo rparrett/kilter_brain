@@ -3,9 +3,9 @@ use bevy::{
         gestures::PinchGesture,
         mouse::{MouseScrollUnit, MouseWheel},
     },
+    picking::events::{Drag, Pointer},
     prelude::*,
 };
-use bevy_mod_picking::events::{Drag, Pointer};
 
 #[derive(Default)]
 pub struct PanCamPlugin;
@@ -18,13 +18,11 @@ impl Plugin for PanCamPlugin {
 }
 
 fn setup(mut commands: Commands) {
-    // camera
     let pos = Vec3::new(-2.0, 1.0, 6.0);
+
     commands.spawn((
-        Camera3dBundle {
-            transform: Transform::from_translation(pos).looking_at(Vec3::ZERO, Vec3::Y),
-            ..default()
-        },
+        Camera3d::default(),
+        Transform::from_translation(pos).looking_at(Vec3::ZERO, Vec3::Y),
         PanCam {
             bounds_min: pos.truncate(),
             bounds_max: pos.truncate(),

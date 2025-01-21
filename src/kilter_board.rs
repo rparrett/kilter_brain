@@ -84,53 +84,46 @@ fn setup_scene(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     // directional 'sun' light
-    commands.spawn(DirectionalLightBundle {
-        directional_light: DirectionalLight {
+    commands.spawn((
+        DirectionalLight {
             illuminance: light_consts::lux::OVERCAST_DAY,
             shadows_enabled: true,
             ..default()
         },
-        transform: Transform {
+        Transform {
             rotation: Quat::from_euler(EulerRot::XYZ, -0.9, 0.3, 0.0),
             ..default()
         },
-        // The default cascade config is designed to handle large scenes.
-        // As this example has a much smaller world, we can tighten the shadow
-        // bounds for better visual quality.
-        cascade_shadow_config: CascadeShadowConfigBuilder {
+        // Tighten the shadow bounds for better visual quality.
+        CascadeShadowConfigBuilder {
             first_cascade_far_bound: 4.0,
             maximum_distance: 10.0,
             ..default()
         }
-        .into(),
-        ..default()
-    });
+        .build(),
+    ));
 
     let board_width = 1477. / 1200. * BOARD_HEIGHT;
 
     commands.spawn((
-        PbrBundle {
-            mesh: meshes.add(Rectangle::new(board_width, BOARD_HEIGHT)),
-            material: materials.add(StandardMaterial {
-                base_color_texture: Some(asset_server.load("original-16x12.png")),
-                ..default()
-            }),
+        Mesh3d(meshes.add(Rectangle::new(board_width, BOARD_HEIGHT))),
+        MeshMaterial3d(materials.add(StandardMaterial {
+            base_color_texture: Some(asset_server.load("original-16x12.png")),
             ..default()
-        },
+        })),
         Board,
     ));
 
     // TODO: adjust scene so the floor is at y=0
-    commands.spawn(PbrBundle {
-        mesh: meshes.add(Circle::new(3.0)),
-        material: materials.add(Color::WHITE),
-        transform: Transform {
+    commands.spawn((
+        Mesh3d(meshes.add(Circle::new(3.0))),
+        MeshMaterial3d(materials.add(Color::WHITE)),
+        Transform {
             translation: Vec3::new(0., -BOARD_HEIGHT / 2., 0.),
             rotation: Quat::from_rotation_x(-std::f32::consts::FRAC_PI_2),
             ..default()
         },
-        ..default()
-    });
+    ));
 }
 
 // TODO move to keyboard.rs or something

@@ -21,18 +21,15 @@ impl Plugin for NetPanelPlugin {
 fn setup_net_panel(mut commands: Commands) {
     let container = commands
         .spawn((
-            NodeBundle {
-                style: Style {
-                    position_type: PositionType::Absolute,
-                    bottom: Val::Px(0.),
-                    right: Val::Px(0.),
-                    padding: theme::CONTAINER_PADDING,
-                    ..default()
-                },
-                border_radius: BorderRadius::top_left(theme::CONTAINER_BORDER_RADIUS),
-                background_color: theme::CONTAINER_BG.into(),
+            Node {
+                position_type: PositionType::Absolute,
+                bottom: Val::Px(0.),
+                right: Val::Px(0.),
+                padding: theme::CONTAINER_PADDING,
                 ..default()
             },
+            BorderRadius::top_left(theme::CONTAINER_BORDER_RADIUS),
+            BackgroundColor(theme::CONTAINER_BG.into()),
             NetPanel,
         ))
         .id();
@@ -40,14 +37,12 @@ fn setup_net_panel(mut commands: Commands) {
     // TODO style
     let label = commands
         .spawn((
-            TextBundle::from_section(
-                "Loading...",
-                TextStyle {
-                    font_size: theme::FONT_SIZE,
-                    color: theme::FONT_COLOR.into(),
-                    ..default()
-                },
-            ),
+            Text::new("Loading..."),
+            TextFont {
+                font_size: theme::FONT_SIZE,
+                ..default()
+            },
+            TextColor(theme::FONT_COLOR.into()),
             LoadingText,
         ))
         .id();

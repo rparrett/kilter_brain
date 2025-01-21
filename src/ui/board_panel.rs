@@ -18,8 +18,8 @@ impl Plugin for BoardPanelPlugin {
 
 fn setup_nav_panel(mut commands: Commands) {
     let container = commands
-        .spawn(NodeBundle {
-            style: Style {
+        .spawn((
+            Node {
                 position_type: PositionType::Absolute,
                 top: Val::Px(0.),
                 left: Val::Px(0.),
@@ -27,10 +27,9 @@ fn setup_nav_panel(mut commands: Commands) {
                 padding: theme::CONTAINER_PADDING,
                 ..default()
             },
-            border_radius: BorderRadius::bottom_right(theme::CONTAINER_BORDER_RADIUS),
-            background_color: theme::CONTAINER_BG.into(),
-            ..default()
-        })
+            BorderRadius::bottom_right(theme::CONTAINER_BORDER_RADIUS),
+            BackgroundColor(theme::CONTAINER_BG.into()),
+        ))
         .id();
 
     let angle_button = button(&mut commands, "0°", AngleButton);
@@ -57,6 +56,6 @@ fn angle_button_text(
     };
     let mut iter = text_query.iter_many_mut(children);
     while let Some(mut text) = iter.fetch_next() {
-        text.sections[0].value = format!("{}°", angle.0);
+        text.0 = format!("{}°", angle.0);
     }
 }

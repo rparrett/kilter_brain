@@ -66,19 +66,18 @@ fn setup_scene_once_loaded(
 
         commands
             .entity(entity)
-            .insert(assets.graph.clone())
+            .insert(AnimationGraphHandle(assets.graph.clone()))
             .insert(transitions);
     }
 }
 
 fn setup(mut commands: Commands, assets: Res<HumanAssets>) {
-    commands.spawn(SceneBundle {
-        scene: assets.scene.clone(),
-        transform: Transform {
+    commands.spawn((
+        SceneRoot(assets.scene.clone()),
+        Transform {
             rotation: Quat::from_euler(EulerRot::XZY, -PI / 2., 3.6, 0.0),
             scale: Vec3::splat(1.76 / 2.),
             translation: Vec3::new(1.9, -BOARD_HEIGHT / 2., 1.6),
         },
-        ..default()
-    });
+    ));
 }

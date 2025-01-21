@@ -53,32 +53,28 @@ impl Plugin for ActionPanelPlugin {
 
 fn setup_buttons_panel(mut commands: Commands) {
     let root = commands
-        .spawn(NodeBundle {
-            style: Style {
-                position_type: PositionType::Absolute,
-                bottom: Val::Px(0.),
-                left: Val::Px(0.),
-                flex_direction: FlexDirection::Row,
-                width: Val::Percent(100.),
-                justify_content: JustifyContent::Center,
-                ..default()
-            },
+        .spawn(Node {
+            position_type: PositionType::Absolute,
+            bottom: Val::Px(0.),
+            left: Val::Px(0.),
+            flex_direction: FlexDirection::Row,
+            width: Val::Percent(100.),
+            justify_content: JustifyContent::Center,
             ..default()
         })
         .id();
 
     let container = commands
-        .spawn(NodeBundle {
-            style: Style {
+        .spawn((
+            Node {
                 padding: theme::CONTAINER_PADDING,
                 column_gap: Val::Px(12.),
                 flex_direction: FlexDirection::Row,
                 ..default()
             },
-            background_color: theme::CONTAINER_BG.into(),
-            border_radius: BorderRadius::top(theme::CONTAINER_BORDER_RADIUS),
-            ..default()
-        })
+            BorderRadius::top(theme::CONTAINER_BORDER_RADIUS),
+            BackgroundColor(theme::CONTAINER_BG.into()),
+        ))
         .id();
 
     let new_button = button(&mut commands, "New", NewButton);
@@ -88,7 +84,7 @@ fn setup_buttons_panel(mut commands: Commands) {
     let publish_button = button(&mut commands, "Publish", PublishButton);
     let open_climb_button = button(&mut commands, "Open", OpenClimbButton);
 
-    commands.entity(container).push_children(&[
+    commands.entity(container).add_children(&[
         new_button,
         clear_button,
         gen_button,

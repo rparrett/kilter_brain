@@ -34,28 +34,26 @@ fn interaction(
 pub fn button<M: Component>(commands: &mut Commands, text: &str, marker: M) -> Entity {
     commands
         .spawn((
-            ButtonBundle {
-                style: Style {
-                    height: Val::Px(30.0),
-                    justify_content: JustifyContent::Center,
-                    align_items: AlignItems::Center,
-                    padding: UiRect::horizontal(Val::Px(12.)),
-                    ..default()
-                },
-                background_color: theme::NORMAL_BUTTON.into(),
-                border_radius: BorderRadius::all(Val::Px(3.)),
+            Button,
+            Node {
+                height: Val::Px(30.0),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                padding: UiRect::horizontal(Val::Px(12.)),
                 ..default()
             },
+            BorderRadius::all(Val::Px(3.)),
+            BackgroundColor(theme::NORMAL_BUTTON.into()),
             marker,
         ))
         .with_children(|parent| {
-            parent.spawn(TextBundle::from_section(
-                text.to_string(),
-                TextStyle {
+            parent.spawn((
+                Text::new(text),
+                TextFont {
                     font_size: theme::FONT_SIZE,
-                    color: theme::FONT_COLOR.into(),
                     ..default()
                 },
+                TextColor(theme::FONT_COLOR.into()),
             ));
         })
         .id()

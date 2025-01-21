@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_simple_text_input::{TextInputBundle, TextInputValue};
+use bevy_simple_text_input::{TextInput, TextInputTextColor, TextInputTextFont, TextInputValue};
 
 use super::theme;
 
@@ -29,39 +29,34 @@ fn setup_search_ui(mut commands: Commands) {
         .spawn((
             Name::new("SearchPanel"),
             SearchPanel,
-            NodeBundle {
-                style: Style {
-                    flex_direction: FlexDirection::Column,
-                    position_type: PositionType::Absolute,
-                    top: Val::Px(60.),
-                    right: Val::Px(0.),
-                    width: Val::Px(200.),
-                    padding: theme::CONTAINER_PADDING,
-                    row_gap: Val::Px(5.),
-                    ..default()
-                },
-                border_radius: BorderRadius::left(theme::CONTAINER_BORDER_RADIUS),
-                background_color: theme::CONTAINER_BG.into(),
+            Node {
+                flex_direction: FlexDirection::Column,
+                position_type: PositionType::Absolute,
+                top: Val::Px(60.),
+                right: Val::Px(0.),
+                width: Val::Px(200.),
+                padding: theme::CONTAINER_PADDING,
+                row_gap: Val::Px(5.),
                 ..default()
             },
+            BorderRadius::left(theme::CONTAINER_BORDER_RADIUS),
+            BackgroundColor(theme::CONTAINER_BG.into()),
         ))
         .with_children(|parent| {
             parent.spawn((
-                NodeBundle::default(),
-                TextInputBundle::default().with_text_style(TextStyle {
+                Node::default(),
+                TextInput,
+                TextInputTextFont(TextFont {
                     font_size: theme::FONT_SIZE,
-                    color: theme::FONT_COLOR.into(),
                     ..default()
                 }),
+                TextInputTextColor(theme::FONT_COLOR.into()),
                 SearchField,
             ));
             parent.spawn((
-                NodeBundle {
-                    style: Style {
-                        flex_direction: FlexDirection::Column,
-                        row_gap: Val::Px(5.),
-                        ..default()
-                    },
+                Node {
+                    flex_direction: FlexDirection::Column,
+                    row_gap: Val::Px(5.),
                     ..default()
                 },
                 SearchResultsPanel,
@@ -73,7 +68,7 @@ fn update_search_results(
     search_field: Query<&TextInputValue, (With<SearchField>, Changed<TextInputValue>)>,
     kilter: Res<KilterData>,
     results_panel: Query<Entity, With<SearchResultsPanel>>,
-    mut search_panel: Query<&mut Style, With<SearchPanel>>,
+    mut search_panel: Query<&mut Node, With<SearchPanel>>,
     mut commands: Commands,
 ) {
     let Ok(search_text) = search_field.get_single() else {
@@ -84,16 +79,16 @@ fn update_search_results(
         return;
     };
 
-    let Ok(mut panel_style) = search_panel.get_single_mut() else {
+    let Ok(mut panel_node) = search_panel.get_single_mut() else {
         return;
     };
 
     if search_text.0.is_empty() {
-        panel_style.display = Display::None;
+        panel_node.display = Display::None;
         return;
     }
 
-    panel_style.display = Display::Flex;
+    panel_node.display = Display::Flex;
 
     // Despawn existing search result entities
     commands.entity(panel_entity).despawn_descendants();
@@ -106,25 +101,23 @@ fn update_search_results(
     for (climb_idx, climb) in results.iter().take(10) {
         let result = commands
             .spawn((
-                ButtonBundle {
-                    style: Style {
-                        width: Val::Percent(100.),
-                        padding: theme::CONTAINER_PADDING,
-                        ..default()
-                    },
-                    background_color: theme::CONTAINER_BG.into(),
+                Button,
+                Node {
+                    width: Val::Percent(100.),
+                    padding: theme::CONTAINER_PADDING,
                     ..default()
                 },
+                BackgroundColor(theme::CONTAINER_BG.into()),
                 SearchResultItem(*climb_idx),
             ))
             .with_children(|parent| {
-                parent.spawn(TextBundle::from_section(
-                    format!("{}: {}", climb_idx, climb.name),
-                    TextStyle {
+                parent.spawn((
+                    Text::new(format!("{}: {}", climb_idx, climb.name)),
+                    TextFont {
                         font_size: theme::FONT_SIZE_SM,
-                        color: theme::FONT_COLOR.into(),
                         ..default()
                     },
+                    TextColor(theme::FONT_COLOR.into()),
                 ));
             })
             .id();

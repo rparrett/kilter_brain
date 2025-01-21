@@ -1,5 +1,4 @@
 use bevy::{ecs::system::SystemParam, prelude::*, utils::HashMap};
-use bevy_mod_picking::picking_core::Pickable;
 
 use crate::{kilter_board::KilterSettings, kilter_data::KilterData};
 use std::fmt::Display;
@@ -67,7 +66,7 @@ pub fn update(
     mut query: Query<(Entity, Ref<PlacementIndicator>), Changed<PlacementIndicator>>,
     kilter: Res<KilterData>,
     settings: Res<KilterSettings>,
-    mut material_query: Query<&mut Handle<StandardMaterial>>,
+    mut material_query: Query<&mut MeshMaterial3d<StandardMaterial>>,
     mut handles: IndicatorHandlesParam,
 ) {
     for (entity, indicator) in &mut query {
@@ -90,24 +89,18 @@ pub fn update(
             // Outline
             let outline = commands
                 .spawn((
-                    PbrBundle {
-                        mesh: handles.handles.outline_mesh.clone(),
-                        material: handles.get_material("#000000"),
-                        transform: Transform::from_translation(Vec3::Z * -0.0001),
-                        ..default()
-                    },
-                    Pickable::IGNORE,
+                    Mesh3d(handles.handles.outline_mesh.clone()),
+                    MeshMaterial3d(handles.get_material("#000000")),
+                    Transform::from_translation(Vec3::Z * -0.0001),
+                    PickingBehavior::IGNORE,
                 ))
                 .id();
 
             commands.entity(entity).insert((
-                PbrBundle {
-                    mesh: handles.handles.mesh.clone(),
-                    material: handles.get_material(&role.led_color),
-                    transform: Transform::from_translation(pos.extend(0.0002)),
-                    ..default()
-                },
-                Pickable::IGNORE,
+                Mesh3d(handles.handles.mesh.clone()),
+                MeshMaterial3d(handles.get_material(&role.led_color)),
+                Transform::from_translation(pos.extend(0.0002)),
+                PickingBehavior::IGNORE,
             ));
 
             commands.entity(entity).add_child(outline);
@@ -116,7 +109,7 @@ pub fn update(
                 continue;
             };
 
-            *mat = handles.get_material(&role.led_color);
+            mat.0 = handles.get_material(&role.led_color);
         }
     }
 }
