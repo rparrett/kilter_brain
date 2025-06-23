@@ -51,7 +51,7 @@ fn angle_button_text(
     mut text_query: Query<&mut Text>,
     button: Query<&Children, With<AngleButton>>,
 ) {
-    let Ok(children) = button.get_single() else {
+    let Ok(children) = button.single() else {
         return;
     };
     let mut iter = text_query.iter_many_mut(children);

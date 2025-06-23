@@ -47,7 +47,7 @@ fn prev_button(
     mut writer: EventWriter<ChangeClimbEvent>,
 ) {
     if query.iter().any(|i| *i == Interaction::Pressed) {
-        writer.send(ChangeClimbEvent::Prev);
+        writer.write(ChangeClimbEvent::Prev);
     }
 }
 
@@ -56,6 +56,6 @@ fn next_button(
     mut writer: EventWriter<ChangeClimbEvent>,
 ) {
     if query.iter().any(|i| *i == Interaction::Pressed) {
-        writer.send(ChangeClimbEvent::Next);
+        writer.write(ChangeClimbEvent::Next);
     }
 }

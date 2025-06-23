@@ -129,9 +129,9 @@ fn setup_scene(
 // TODO move to keyboard.rs or something
 fn prev_next_climb(keys: Res<ButtonInput<KeyCode>>, mut writer: EventWriter<ChangeClimbEvent>) {
     if keys.just_pressed(KeyCode::ArrowRight) {
-        writer.send(ChangeClimbEvent::Next);
+        writer.write(ChangeClimbEvent::Next);
     } else if keys.just_pressed(KeyCode::ArrowLeft) {
-        writer.send(ChangeClimbEvent::Prev);
+        writer.write(ChangeClimbEvent::Prev);
     }
 }
 
@@ -175,7 +175,9 @@ fn show_climb(
         return;
     }
 
-    let board = boards.single();
+    let Ok(board) = boards.single() else {
+        return;
+    };
 
     // Get selected or first climb
     let Some(climb) = kilter
@@ -189,7 +191,7 @@ fn show_climb(
     };
 
     for entity in &indicators {
-        commands.entity(entity).despawn_recursive();
+        commands.entity(entity).despawn();
     }
 
     let Ok((placements, _)) = placements_and_roles().easy_parse(climb.frames.as_str()) else {

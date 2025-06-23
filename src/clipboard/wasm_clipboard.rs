@@ -41,7 +41,7 @@ fn setup_clipboard_system(paste_sender: Res<OnPasteSender>) {
         let event = event.dyn_ref::<web_sys::ClipboardEvent>().unwrap_throw();
         if let Some(data) = event.clipboard_data() {
             if let Ok(text) = data.get_data("text") {
-                local_sender.send(text.to_owned()).unwrap();
+                local_sender.write(text.to_owned()).unwrap();
             }
         }
     })
@@ -50,6 +50,6 @@ fn setup_clipboard_system(paste_sender: Res<OnPasteSender>) {
 
 fn clipboard(paste_receiver: Res<OnPasteReceiver>, mut events: EventWriter<PasteEvent>) {
     if let Ok(text) = paste_receiver.0.lock().unwrap().try_recv() {
-        events.send(PasteEvent(text));
+        events.write(PasteEvent(text));
     }
 }

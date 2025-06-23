@@ -1,4 +1,4 @@
-use bevy::{ecs::system::SystemParam, prelude::*, utils::HashMap};
+use bevy::{ecs::system::SystemParam, platform::collections::HashMap, prelude::*};
 
 use crate::{kilter_board::KilterSettings, kilter_data::KilterData};
 use std::fmt::Display;
@@ -92,7 +92,7 @@ pub fn update(
                     Mesh3d(handles.handles.outline_mesh.clone()),
                     MeshMaterial3d(handles.get_material("#000000")),
                     Transform::from_translation(Vec3::Z * -0.0001),
-                    PickingBehavior::IGNORE,
+                    Pickable::IGNORE,
                 ))
                 .id();
 
@@ -100,7 +100,7 @@ pub fn update(
                 Mesh3d(handles.handles.mesh.clone()),
                 MeshMaterial3d(handles.get_material(&role.led_color)),
                 Transform::from_translation(pos.extend(0.0002)),
-                PickingBehavior::IGNORE,
+                Pickable::IGNORE,
             ));
 
             commands.entity(entity).add_child(outline);

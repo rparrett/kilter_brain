@@ -10,12 +10,7 @@ crate-type = ["staticlib", "cdylib"]
 
 [dependencies]
 kilter_brain = { path = ".." }
-bevy = { version = "0.15", default-features = false }
-
-[target.aarch64-apple-ios-sim.dependencies]
-bevy = { version = "0.15", default-features = false, features = [
-    "ios_simulator",
-] }
+bevy = { version = "0.16", default-features = false }
 
 [package.metadata.android]
 package = "com.rparrett.kilterbrain"

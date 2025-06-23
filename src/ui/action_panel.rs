@@ -103,7 +103,7 @@ fn clear_button(
 ) {
     if query.iter().any(|i| *i == Interaction::Pressed) {
         for entity in &placement_query {
-            commands.entity(entity).despawn_recursive();
+            commands.entity(entity).despawn();
         }
     }
 }
@@ -142,7 +142,7 @@ fn gen_new_button(
             num: 10,
         };
 
-        ev_request.send(
+        ev_request.write(
             HttpClient::new()
                 .post(format!("{}/generate", api_settings.host))
                 .json(&request)
@@ -169,7 +169,7 @@ fn gen_fill_button(
             num: 10,
         };
 
-        ev_request.send(
+        ev_request.write(
             HttpClient::new()
                 .post(format!("{}/generate", api_settings.host))
                 .json(&request)
@@ -200,7 +200,7 @@ fn publish_button(
         let mut new_climb = climb.clone();
         new_climb.frames = current_frames;
 
-        ev_request.send(
+        ev_request.write(
             HttpClient::new()
                 .post(format!("{}/publish", api_settings.host))
                 .json(&new_climb)

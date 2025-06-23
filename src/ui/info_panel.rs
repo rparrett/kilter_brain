@@ -169,7 +169,7 @@ fn update_selected_climb(
         return;
     };
 
-    let Ok(name_entity) = climb_name_text_query.get_single() else {
+    let Ok(name_entity) = climb_name_text_query.single() else {
         return;
     };
     let Ok(mut name_text) = text_query.get_mut(name_entity) else {
@@ -177,7 +177,7 @@ fn update_selected_climb(
     };
     name_text.0.clone_from(&climb.name);
 
-    let Ok(author_entity) = climb_author_text_query.get_single() else {
+    let Ok(author_entity) = climb_author_text_query.single() else {
         return;
     };
     let Ok(mut author_text) = text_query.get_mut(author_entity) else {
@@ -187,7 +187,7 @@ fn update_selected_climb(
         .0
         .clone_from(&format!("by {}", &climb.setter_username));
 
-    let Ok(angle_entity) = climb_angle_text_query.get_single() else {
+    let Ok(angle_entity) = climb_angle_text_query.single() else {
         return;
     };
     let Ok(mut angle_text) = text_query.get_mut(angle_entity) else {
@@ -200,7 +200,7 @@ fn update_selected_climb(
             .unwrap_or_else(|| "Setter Angle: Unknown".to_string()),
     );
 
-    let Ok(description_entity) = climb_description_text_query.get_single() else {
+    let Ok(description_entity) = climb_description_text_query.single() else {
         return;
     };
     let Ok(mut description_text) = text_query.get_mut(description_entity) else {
@@ -212,7 +212,7 @@ fn update_selected_climb(
         description_text.0 = "No Description".to_string();
     }
 
-    let Ok(uuid_entity) = climb_uuid_text_query.get_single() else {
+    let Ok(uuid_entity) = climb_uuid_text_query.single() else {
         return;
     };
     let Ok(mut uuid_text) = text_query.get_mut(uuid_entity) else {
@@ -220,7 +220,7 @@ fn update_selected_climb(
     };
     uuid_text.0.clone_from(&climb.uuid);
 
-    let Ok(draft_entity) = climb_draft_text_query.get_single() else {
+    let Ok(draft_entity) = climb_draft_text_query.single() else {
         return;
     };
     let Ok(mut draft_text) = text_query.get_mut(draft_entity) else {
@@ -230,7 +230,7 @@ fn update_selected_climb(
         .0
         .clone_from(&format!("Draft: {:?}", climb.is_draft));
 
-    let Ok(listed_entity) = climb_listed_text_query.get_single() else {
+    let Ok(listed_entity) = climb_listed_text_query.single() else {
         return;
     };
     let Ok(mut listed_text) = text_query.get_mut(listed_entity) else {
@@ -246,7 +246,7 @@ fn toggle_more_info(
     mut more_info_query: Query<&mut Node, With<ClimbMoreInfo>>,
 ) {
     if interaction_query.iter().any(|i| *i == Interaction::Pressed) {
-        if let Ok(mut node) = more_info_query.get_single_mut() {
+        if let Ok(mut node) = more_info_query.single_mut() {
             node.display = if node.display == Display::Flex {
                 Display::None
             } else {

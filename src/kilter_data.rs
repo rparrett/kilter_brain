@@ -1,8 +1,8 @@
+use bevy::platform::collections::HashMap;
 use combine::EasyParser;
 use indexmap::IndexMap;
 use serde_derive::{Deserialize, Serialize};
 use serde_json::Value;
-use std::collections::HashMap;
 use std::io::Read;
 #[cfg(not(target_arch = "wasm32"))]
 use std::{fs::read_dir, fs::File, io, io::BufReader, path::Path};

@@ -122,7 +122,7 @@ fn cycle(
             if let Some(next) = next {
                 placement.role_id = *next;
             } else {
-                commands.entity(entity).despawn_recursive();
+                commands.entity(entity).despawn();
             }
         } else {
             // TODO if there are already two start holds on the board,

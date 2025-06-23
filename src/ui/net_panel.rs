@@ -54,7 +54,7 @@ fn show_hide(
     requests: Query<(), With<RequestTask>>,
     mut query: Query<&mut Visibility, With<NetPanel>>,
 ) {
-    let Ok(mut visibility) = query.get_single_mut() else {
+    let Ok(mut visibility) = query.single_mut() else {
         return;
     };
 

@@ -24,7 +24,7 @@ fn paste(keyboard_input: Res<ButtonInput<KeyCode>>, mut events: EventWriter<Past
 
         if let Ok(mut context) = context {
             if let Ok(contents) = context.get_contents() {
-                events.send(PasteEvent(contents));
+                events.write(PasteEvent(contents));
             }
         }
     }

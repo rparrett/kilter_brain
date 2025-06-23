@@ -1,6 +1,5 @@
-use bevy::{input::common_conditions::input_toggle_active, prelude::*};
+use bevy::prelude::*;
 use bevy_http_client::prelude::*;
-use bevy_inspector_egui::quick::ResourceInspectorPlugin;
 use serde_derive::Deserialize;
 
 use crate::{
@@ -13,10 +12,6 @@ pub struct GenApiPlugin;
 impl Plugin for GenApiPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(HttpClientPlugin)
-            .add_plugins(
-                ResourceInspectorPlugin::<GenApiSettings>::default()
-                    .run_if(input_toggle_active(false, KeyCode::Escape)),
-            )
             .init_resource::<GenApiSettings>()
             .register_type::<GenApiSettings>()
             .register_request_type::<GeneratedClimbs>()

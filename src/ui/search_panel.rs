@@ -71,15 +71,15 @@ fn update_search_results(
     mut search_panel: Query<&mut Node, With<SearchPanel>>,
     mut commands: Commands,
 ) {
-    let Ok(search_text) = search_field.get_single() else {
+    let Ok(search_text) = search_field.single() else {
         return;
     };
 
-    let Ok(panel_entity) = results_panel.get_single() else {
+    let Ok(panel_entity) = results_panel.single() else {
         return;
     };
 
-    let Ok(mut panel_node) = search_panel.get_single_mut() else {
+    let Ok(mut panel_node) = search_panel.single_mut() else {
         return;
     };
 
@@ -91,7 +91,7 @@ fn update_search_results(
     panel_node.display = Display::Flex;
 
     // Despawn existing search result entities
-    commands.entity(panel_entity).despawn_descendants();
+    commands.entity(panel_entity).despawn_related::<Children>();
 
     let results = kilter.search_by_name(&search_text.0);
     if results.is_empty() {
@@ -132,7 +132,7 @@ fn handle_search_result_click(
 ) {
     for (interaction, item) in &query {
         if *interaction == Interaction::Pressed {
-            writer.send(ChangeClimbEvent::SelectByIndex(item.0));
+            writer.write(ChangeClimbEvent::SelectByIndex(item.0));
         }
     }
 }
