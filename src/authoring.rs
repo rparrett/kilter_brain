@@ -70,7 +70,7 @@ fn cycle(
 
             let d_squared = pos.distance_squared(cursor.truncate());
 
-            if min.map_or(true, |(_, _, min_d_squared)| d_squared < min_d_squared) {
+            if min.is_none_or(|(_, _, min_d_squared)| d_squared < min_d_squared) {
                 min = Some((*id, pos, d_squared));
             }
         }
