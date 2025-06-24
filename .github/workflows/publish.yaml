@@ -16,8 +16,10 @@ jobs:
     steps:
       # bevy_cli installs an older version of wasm-opt via https://crates.io/crates/wasm-opt which is
       # incompatible with the wasm produced by rust 1.87
-      - name: Install wasm-opt
-        run: sudo apt install -y binaryen
+      - uses: sigoden/install-binary@v1
+        with:
+          repo: WebAssembly/binaryen
+          name: wasm-opt
 
       - name: Checkout sources
         uses: actions/checkout@v4
