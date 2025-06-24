@@ -30,7 +30,7 @@ jobs:
           bevy build --yes --release --profile web-dist web --bundle
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ./target/bevy_web/web-dist/kilter_brain
           retention-days: 1
