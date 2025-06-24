@@ -40,8 +40,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./target/bevy_web/web-dist/kilter_brain
-          retention-days: 1
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4
