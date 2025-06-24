@@ -21,29 +21,18 @@ jobs:
         with:
           targets: wasm32-unknown-unknown
 
-      - name: install wasm-bindgen-cli
+      - name: Install bevy_cli
         run: |
-          cargo install wasm-bindgen-cli
+          cargo install --git https://github.com/TheBevyFlock/bevy_cli --tag cli-v0.1.0-alpha.1 --locked bevy_cli
 
-      - name: Build
+      - name: Bundle
         run: |
-          cargo build --profile web-dist --target wasm32-unknown-unknown
-
-      - name: Prepare package
-        run: |
-          wasm-bindgen --no-typescript --out-name bevy_game --out-dir wasm --target web target/wasm32-unknown-unknown/web-dist/kilter_brain.wasm
-          cp -r assets wasm/ || true # Ignore failures when source or dest don't exist
-
-      - name: Optimize Wasm
-        uses: NiklasEi/wasm-opt-action@v2
-        with:
-          file: wasm/*.wasm
-          optimize_all: true
+          bevy build --yes --release --profile web-dist web --bundle
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v4
         with:
-          path: ./wasm
+          path: ./target/bevy_web/web-dist/kilter_brain
           retention-days: 1
 
       - name: Deploy to GitHub Pages
