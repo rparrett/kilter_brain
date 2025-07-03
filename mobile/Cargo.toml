@@ -6,7 +6,7 @@ publish = false
 
 [lib]
 name = "mobile"
-crate-type = ["staticlib", "cdylib"]
+crate-type = ["lib", "cdylib"]
 
 [dependencies]
 kilter_brain = { path = ".." }

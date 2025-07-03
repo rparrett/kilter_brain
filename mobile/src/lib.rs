@@ -4,7 +4,7 @@ use kilter_brain::kilter_data::KilterData;
 use kilter_brain::AppPlugin;
 
 #[bevy_main]
-fn main() {
+pub fn main() {
     let kd = {
         let mut kd = KilterData::default();
         kd.json_update_reader(std::io::Cursor::new(include_str!("../../minimal.json")));

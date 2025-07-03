@@ -6,10 +6,10 @@ ifndef DEVICE_ID
 endif
 
 run: install
-	xcrun simctl launch --console $(DEVICE) com.rparrett.kilter_brain
+	xcrun simctl launch --console $(DEVICE) com.rparrett.kilterbrain
 
 boot-sim:
-	(xcrun simctl boot $(DEVICE) || true) && open -a Simulator
+	xcrun simctl boot $(DEVICE) || true
 
 install: xcodebuild-simulator boot-sim
 	xcrun simctl install $(DEVICE) build/Build/Products/Debug-iphonesimulator/mobile.app
@@ -19,9 +19,6 @@ xcodebuild-simulator:
 
 xcodebuild-iphone:
 	IOS_TARGETS=aarch64-apple-ios xcodebuild -scheme mobile -configuration Debug -derivedDataPath build -arch arm64
-
-xcodebuild-iphone-release:
-	IOS_TARGETS=aarch64-apple-ios xcodebuild -scheme mobile -configuration Release -derivedDataPath build -arch arm64
 
 clean:
 	rm -r build
