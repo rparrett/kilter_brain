@@ -13,6 +13,7 @@ pub struct BleState {
 pub struct BleDevice {
     pub id: String,
     pub name: String,
+    pub advertised_name: String,
 }
 
 unsafe extern "C" {

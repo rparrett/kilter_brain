@@ -24,6 +24,7 @@ public func ble_get_state_json() -> UnsafePointer<CChar>? {
     let deviceList = state.discovered.map {
         [
             "name": $0.name ?? "Unknown",
+            "advertised_name": BleManager.shared.peripheralAdvertisedNames[$0.identifier] ?? "Unknown",
             "id": $0.identifier.uuidString
         ]
     }
@@ -57,7 +58,6 @@ struct BleState {
     let discovered: [CBPeripheral]
 }
 
-// Maybe we're accessing this in a thread-safe way!
 class BleManager: NSObject, CBCentralManagerDelegate, @unchecked Sendable {
     static let shared = BleManager()
 
@@ -65,6 +65,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, @unchecked Sendable {
     private(set) var isOn: Bool = false
     private(set) var isScanning: Bool = false
     private(set) var discoveredPeripherals: [CBPeripheral] = []
+    private(set) var peripheralAdvertisedNames: [UUID: String] = [:]
 
     private override init() {
         super.init()
@@ -72,18 +73,15 @@ class BleManager: NSObject, CBCentralManagerDelegate, @unchecked Sendable {
     }
 
     func scan() {
-        print("BLE: scan() swift")
-        
         guard isOn else {
-            print("BLE: Bluetooth not powered on.")
+            print("Bluetooth not powered on.")
             return
         }
 
         if !isScanning {
-            print("BLE: Starting Scanning")
             discoveredPeripherals.removeAll()
+            peripheralAdvertisedNames.removeAll()
             let targetServiceUUID = CBUUID(string: "4488B571-7806-4DF6-BCFF-A2897E4953FF") // Replace as needed
-            //centralManager.scanForPeripherals(withServices: [], options: nil)
             centralManager.scanForPeripherals(withServices: [targetServiceUUID], options: nil)
             isScanning = true
         }
@@ -111,6 +109,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, @unchecked Sendable {
         if !isOn {
             isScanning = false
             discoveredPeripherals.removeAll()
+            peripheralAdvertisedNames.removeAll()
         }
     }
 
@@ -118,9 +117,14 @@ class BleManager: NSObject, CBCentralManagerDelegate, @unchecked Sendable {
                         didDiscover peripheral: CBPeripheral,
                         advertisementData: [String : Any],
                         rssi RSSI: NSNumber) {
+
         // Avoid duplicates
         if !discoveredPeripherals.contains(where: { $0.identifier == peripheral.identifier }) {
             discoveredPeripherals.append(peripheral)
+        }
+
+        if let advertisedName = advertisementData[CBAdvertisementDataLocalNameKey] as? String {
+            peripheralAdvertisedNames[peripheral.identifier] = advertisedName
         }
     }
 }
