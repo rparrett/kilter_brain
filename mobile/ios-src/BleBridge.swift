@@ -52,6 +52,17 @@ public func ble_free_string(_ ptr: UnsafePointer<CChar>?) {
     }
 }
 
+@_cdecl("ble_connect")
+public func ble_connect(_ idStr: UnsafePointer<CChar>) -> Bool {
+    let uuidString = String(cString: idStr)
+    guard let uuid = UUID(uuidString: uuidString) else {
+        print("BLE: Invalid UUID string: \(uuidString)")
+        return false
+    }
+    
+    return BleManager.shared.connect(to: uuid)
+}
+
 struct BleState {
     let isOn: Bool
     let isScanning: Bool
@@ -66,6 +77,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, @unchecked Sendable {
     private(set) var isScanning: Bool = false
     private(set) var discoveredPeripherals: [CBPeripheral] = []
     private(set) var peripheralAdvertisedNames: [UUID: String] = [:]
+    private(set) var allPeripherals: [UUID: CBPeripheral] = [:]
 
     private override init() {
         super.init()
@@ -80,7 +92,6 @@ class BleManager: NSObject, CBCentralManagerDelegate, @unchecked Sendable {
 
         if !isScanning {
             discoveredPeripherals.removeAll()
-            peripheralAdvertisedNames.removeAll()
             let targetServiceUUID = CBUUID(string: "4488B571-7806-4DF6-BCFF-A2897E4953FF") // Replace as needed
             centralManager.scanForPeripherals(withServices: [targetServiceUUID], options: nil)
             isScanning = true
@@ -101,6 +112,21 @@ class BleManager: NSObject, CBCentralManagerDelegate, @unchecked Sendable {
             discovered: discoveredPeripherals
         )
     }
+    
+    func getPeripheral(by id: UUID) -> CBPeripheral? {
+        return allPeripherals[id]
+    }
+    
+    func connect(to id: UUID) -> Bool {
+        guard let peripheral = allPeripherals[id] else {
+            print("BLE: Peripheral with ID \(id) not found")
+            return false
+        }
+        
+        print("BLE: Connecting to peripheral \(id)")
+        centralManager.connect(peripheral, options: nil)
+        return true
+    }
 
     // MARK: - CBCentralManagerDelegate
 
@@ -110,6 +136,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, @unchecked Sendable {
             isScanning = false
             discoveredPeripherals.removeAll()
             peripheralAdvertisedNames.removeAll()
+            allPeripherals.removeAll()
         }
     }
 
@@ -118,7 +145,10 @@ class BleManager: NSObject, CBCentralManagerDelegate, @unchecked Sendable {
                         advertisementData: [String : Any],
                         rssi RSSI: NSNumber) {
 
-        // Avoid duplicates
+        // Store peripheral persistently
+        allPeripherals[peripheral.identifier] = peripheral
+        
+        // Avoid duplicates in current scan
         if !discoveredPeripherals.contains(where: { $0.identifier == peripheral.identifier }) {
             discoveredPeripherals.append(peripheral)
         }

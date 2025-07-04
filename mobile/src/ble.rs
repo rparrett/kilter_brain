@@ -21,6 +21,7 @@ unsafe extern "C" {
     fn ble_stop_scan();
     fn ble_get_state_json() -> *const ffi::c_char;
     fn ble_free_string(ptr: *const ffi::c_char);
+    fn ble_connect(id_str: *const ffi::c_char) -> bool;
 }
 
 fn get_ble_state() -> Option<BleState> {
@@ -44,6 +45,13 @@ fn get_ble_state() -> Option<BleState> {
     }
 }
 
+fn connect_to_device(device_id: &str) -> bool {
+    unsafe {
+        let c_str = ffi::CString::new(device_id).unwrap();
+        ble_connect(c_str.as_ptr())
+    }
+}
+
 pub struct BlePlugin;
 impl Plugin for BlePlugin {
     fn build(&self, app: &mut App) {
@@ -52,7 +60,7 @@ impl Plugin for BlePlugin {
     }
 }
 
-fn update() {
+fn update(mut connected: Local<bool>) {
     let Some(state) = get_ble_state() else {
         info!("BLE: rust no state");
         return;
@@ -70,4 +78,12 @@ fn update() {
     }
 
     info!("BLE: {:?}", state);
+
+    for device in state.devices {
+        if device.advertised_name.starts_with("Fake Kilter") && !*connected {
+            info!("BLE: rust wants to connect to Fake Kilter");
+            connect_to_device(&device.id);
+            *connected = true;
+        }
+    }
 }
