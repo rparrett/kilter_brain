@@ -3525,6 +3525,8 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "kilter_brain",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

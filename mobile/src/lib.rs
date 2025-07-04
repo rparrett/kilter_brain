@@ -1,7 +1,10 @@
 use bevy::prelude::*;
 use bevy::window::WindowMode;
+use ble::BlePlugin;
 use kilter_brain::kilter_data::KilterData;
 use kilter_brain::AppPlugin;
+
+mod ble;
 
 #[cfg(target_os = "ios")]
 #[unsafe(no_mangle)]
@@ -30,6 +33,7 @@ fn main() {
                 ..default()
             }),
             AppPlugin,
+            BlePlugin,
         ))
         .run();
 }
