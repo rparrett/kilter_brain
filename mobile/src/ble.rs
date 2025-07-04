@@ -6,6 +6,7 @@ use std::ffi;
 pub struct BleState {
     pub is_on: bool,
     pub is_scanning: bool,
+    pub is_connected: bool,
     pub devices: Vec<BleDevice>,
 }
 
@@ -22,6 +23,12 @@ unsafe extern "C" {
     fn ble_get_state_json() -> *const ffi::c_char;
     fn ble_free_string(ptr: *const ffi::c_char);
     fn ble_connect(id_str: *const ffi::c_char) -> bool;
+    fn ble_write_characteristic(
+        service_uuid: *const ffi::c_char,
+        characteristic_uuid: *const ffi::c_char,
+        data: *const u8,
+        data_length: usize,
+    ) -> bool;
 }
 
 fn get_ble_state() -> Option<BleState> {
@@ -52,6 +59,20 @@ fn connect_to_device(device_id: &str) -> bool {
     }
 }
 
+pub fn write_to_characteristic(service_uuid: &str, characteristic_uuid: &str, data: &[u8]) -> bool {
+    unsafe {
+        let service_c_str = ffi::CString::new(service_uuid).unwrap();
+        let characteristic_c_str = ffi::CString::new(characteristic_uuid).unwrap();
+
+        ble_write_characteristic(
+            service_c_str.as_ptr(),
+            characteristic_c_str.as_ptr(),
+            data.as_ptr(),
+            data.len(),
+        )
+    }
+}
+
 pub struct BlePlugin;
 impl Plugin for BlePlugin {
     fn build(&self, app: &mut App) {
@@ -60,7 +81,7 @@ impl Plugin for BlePlugin {
     }
 }
 
-fn update(mut connected: Local<bool>) {
+fn update(mut connection_initialized: Local<bool>, mut wrote_test_data: Local<bool>) {
     let Some(state) = get_ble_state() else {
         info!("BLE: rust no state");
         return;
@@ -80,10 +101,15 @@ fn update(mut connected: Local<bool>) {
     info!("BLE: {:?}", state);
 
     for device in state.devices {
-        if device.advertised_name.starts_with("Fake Kilter") && !*connected {
+        if device.advertised_name.starts_with("Fake Kilter")
+            && !*connection_initialized
+            && !state.is_connected
+        {
             info!("BLE: rust wants to connect to Fake Kilter");
             connect_to_device(&device.id);
-            *connected = true;
+            *connection_initialized = true;
         }
     }
+
+    if state.is_connected {}
 }

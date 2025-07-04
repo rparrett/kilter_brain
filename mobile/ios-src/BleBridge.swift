@@ -32,6 +32,7 @@ public func ble_get_state_json() -> UnsafePointer<CChar>? {
     let dict: [String: Any] = [
         "is_on": state.isOn,
         "is_scanning": state.isScanning,
+        "is_connected": state.isConnected,
         "devices": deviceList
     ]
 
@@ -63,13 +64,30 @@ public func ble_connect(_ idStr: UnsafePointer<CChar>) -> Bool {
     return BleManager.shared.connect(to: uuid)
 }
 
+@_cdecl("ble_write_characteristic")
+public func ble_write_characteristic(_ serviceUUID: UnsafePointer<CChar>, 
+                                   _ characteristicUUID: UnsafePointer<CChar>,
+                                   _ data: UnsafePointer<UInt8>,
+                                   _ dataLength: Int) -> Bool {
+    let serviceUUIDString = String(cString: serviceUUID)
+    let characteristicUUIDString = String(cString: characteristicUUID)
+    let dataToWrite = Data(bytes: data, count: dataLength)
+    
+    return BleManager.shared.writeToCharacteristic(
+        serviceUUID: serviceUUIDString,
+        characteristicUUID: characteristicUUIDString,
+        data: dataToWrite
+    )
+}
+
 struct BleState {
     let isOn: Bool
     let isScanning: Bool
+    let isConnected: Bool
     let discovered: [CBPeripheral]
 }
 
-class BleManager: NSObject, CBCentralManagerDelegate, @unchecked Sendable {
+class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate, @unchecked Sendable {
     static let shared = BleManager()
 
     private var centralManager: CBCentralManager!
@@ -78,6 +96,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, @unchecked Sendable {
     private(set) var discoveredPeripherals: [CBPeripheral] = []
     private(set) var peripheralAdvertisedNames: [UUID: String] = [:]
     private(set) var allPeripherals: [UUID: CBPeripheral] = [:]
+    private var connectedPeripheral: CBPeripheral?
 
     private override init() {
         super.init()
@@ -109,6 +128,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, @unchecked Sendable {
         return BleState(
             isOn: isOn,
             isScanning: isScanning,
+            isConnected: connectedPeripheral != nil,
             discovered: discoveredPeripherals
         )
     }
@@ -124,7 +144,29 @@ class BleManager: NSObject, CBCentralManagerDelegate, @unchecked Sendable {
         }
         
         print("BLE: Connecting to peripheral \(id)")
+        peripheral.delegate = self
         centralManager.connect(peripheral, options: nil)
+        return true
+    }
+    
+    func writeToCharacteristic(serviceUUID: String, characteristicUUID: String, data: Data) -> Bool {
+        guard let peripheral = connectedPeripheral else {
+            print("BLE: No connected peripheral")
+            return false
+        }
+        
+        guard let service = peripheral.services?.first(where: { $0.uuid == CBUUID(string: serviceUUID) }) else {
+            print("BLE: Service \(serviceUUID) not found")
+            return false
+        }
+        
+        guard let characteristic = service.characteristics?.first(where: { $0.uuid == CBUUID(string: characteristicUUID) }) else {
+            print("BLE: Characteristic \(characteristicUUID) not found")
+            return false
+        }
+        
+        print("BLE: Writing \(data.count) bytes to characteristic \(characteristicUUID)")
+        peripheral.writeValue(data, for: characteristic, type: .withResponse)
         return true
     }
 
@@ -155,6 +197,42 @@ class BleManager: NSObject, CBCentralManagerDelegate, @unchecked Sendable {
 
         if let advertisedName = advertisementData[CBAdvertisementDataLocalNameKey] as? String {
             peripheralAdvertisedNames[peripheral.identifier] = advertisedName
+        }
+    }
+    
+    func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
+        print("BLE: Connected to peripheral \(peripheral.identifier)")
+        connectedPeripheral = peripheral
+        peripheral.discoverServices(nil)
+    }
+    
+    func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
+        print("BLE: Failed to connect to peripheral \(peripheral.identifier): \(error?.localizedDescription ?? "Unknown error")")
+    }
+    
+    func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+        print("BLE: Disconnected from peripheral \(peripheral.identifier)")
+        if connectedPeripheral?.identifier == peripheral.identifier {
+            connectedPeripheral = nil
+        }
+    }
+    
+    // MARK: - CBPeripheralDelegate
+    
+    func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
+        guard let services = peripheral.services else { return }
+        
+        for service in services {
+            print("BLE: Discovered service: \(service.uuid)")
+            peripheral.discoverCharacteristics(nil, for: service)
+        }
+    }
+    
+    func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
+        guard let characteristics = service.characteristics else { return }
+        
+        for characteristic in characteristics {
+            print("BLE: Discovered characteristic: \(characteristic.uuid) for service: \(service.uuid)")
         }
     }
 }
