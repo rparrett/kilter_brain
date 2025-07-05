@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
-    board_connection::{Connect, NearbyBoards, StartScan},
+    board_connection::{self, BoardConnection, Connect, NearbyBoards, StartScan},
     kilter_board::BoardAngle,
 };
 
@@ -113,10 +113,11 @@ fn scan_button(
 fn nearby_boards(
     mut commands: Commands,
     nearby_boards: Res<NearbyBoards>,
+    board_connection: Res<BoardConnection>,
     mut panels: Query<(Entity, &mut Node), With<NearbyBoardsPanel>>,
 ) {
     // TODO maybe also listen for start/stop scanning events
-    if !nearby_boards.is_changed() {
+    if !nearby_boards.is_changed() && !board_connection.is_changed() {
         return;
     }
 
@@ -124,11 +125,12 @@ fn nearby_boards(
         return;
     };
 
-    node.display = if nearby_boards.0.len() > 0 {
-        Display::Block
-    } else {
-        Display::None
-    };
+    node.display =
+        if nearby_boards.0.len() > 0 && board_connection.scanning && !board_connection.connected {
+            Display::Block
+        } else {
+            Display::None
+        };
 
     commands.entity(entity).despawn_related::<Children>();
 
