@@ -304,5 +304,6 @@ fn scan_poll(
     board_connection.set_if_neq(BoardConnection {
         connected: state.is_connected,
         scanning: state.is_scanning,
+        enabled: state.is_on,
     });
 }

@@ -29,6 +29,7 @@ pub struct NearbyBoards(pub Vec<BoardDevice>);
 pub struct BoardConnection {
     pub connected: bool,
     pub scanning: bool,
+    pub enabled: bool,
 }
 
 #[derive(Event, Default)]

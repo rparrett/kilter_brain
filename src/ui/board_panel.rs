@@ -139,13 +139,16 @@ fn scan_button_text(
     };
     let mut iter = text_query.iter_many_mut(children);
     while let Some(mut text) = iter.fetch_next() {
-        text.0 = if board_connection.connected {
-            "\u{E1B8}".to_string()
+        text.0.clear();
+        text.0.push_str(if !board_connection.enabled {
+            "\u{E1B9}"
+        } else if board_connection.connected {
+            "\u{E1B8}"
         } else if board_connection.scanning {
-            "\u{E1BA}".to_string()
+            "\u{E1BA}"
         } else {
-            "\u{E060}".to_string()
-        };
+            "\u{E060}"
+        });
     }
 }
 
