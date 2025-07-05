@@ -2,6 +2,7 @@ use bevy::{pbr::CascadeShadowConfigBuilder, prelude::*};
 use combine::EasyParser;
 
 use crate::{
+    board_connection::WriteToBoard,
     kilter_data::{placements_and_roles, KilterData},
     placement_indicator::PlacementIndicator,
 };
@@ -170,6 +171,7 @@ fn show_climb(
     settings: Res<KilterSettings>,
     indicators: Query<Entity, With<PlacementIndicator>>,
     boards: Query<Entity, With<Board>>,
+    mut events: EventWriter<WriteToBoard>,
 ) {
     if !selected.is_added() && !selected.is_changed() && !settings.is_changed() {
         return;
@@ -198,14 +200,16 @@ fn show_climb(
         return;
     };
 
-    for (placement_id, role_id) in placements {
+    for (placement_id, role_id) in &placements {
         let indicator = commands
             .spawn(PlacementIndicator {
-                placement_id,
-                role_id,
+                placement_id: *placement_id,
+                role_id: *role_id,
             })
             .id();
 
         commands.entity(board).add_child(indicator);
     }
+
+    events.write(WriteToBoard::from_positions_and_roles(&placements, &kilter));
 }

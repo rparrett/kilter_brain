@@ -196,7 +196,7 @@ fn update_selected_climb(
     angle_text.0.clone_from(
         &climb
             .angle
-            .map(|a| format!("Setter Angle: {}°", a))
+            .map(|a| format!("Setter Angle: {a}°"))
             .unwrap_or_else(|| "Setter Angle: Unknown".to_string()),
     );
 

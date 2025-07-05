@@ -31,30 +31,26 @@ fn interaction(
     }
 }
 
-pub fn button<M: Component>(commands: &mut Commands, text: &str, marker: M) -> Entity {
-    commands
-        .spawn((
-            Button,
-            Node {
-                height: Val::Px(30.0),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                padding: UiRect::horizontal(Val::Px(12.)),
+pub fn button(text: &str, font: Handle<Font>) -> impl Bundle {
+    (
+        Button,
+        Node {
+            height: Val::Px(30.0),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            padding: UiRect::horizontal(Val::Px(12.)),
+            ..default()
+        },
+        BorderRadius::all(Val::Px(3.)),
+        BackgroundColor(theme::NORMAL_BUTTON.into()),
+        Children::spawn(Spawn((
+            Text::new(text),
+            TextFont {
+                font_size: theme::FONT_SIZE,
+                font,
                 ..default()
             },
-            BorderRadius::all(Val::Px(3.)),
-            BackgroundColor(theme::NORMAL_BUTTON.into()),
-            marker,
-        ))
-        .with_children(|parent| {
-            parent.spawn((
-                Text::new(text),
-                TextFont {
-                    font_size: theme::FONT_SIZE,
-                    ..default()
-                },
-                TextColor(theme::FONT_COLOR.into()),
-            ));
-        })
-        .id()
+            TextColor(theme::FONT_COLOR.into()),
+        ))),
+    )
 }

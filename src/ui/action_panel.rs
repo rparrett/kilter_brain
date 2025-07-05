@@ -9,9 +9,10 @@ use crate::{
     kilter_board::{BoardAngle, SelectedClimb},
     kilter_data::{Climb, KilterData},
     placement_indicator::PlacementIndicator,
+    ui::{button::button, UiAssets},
 };
 
-use super::{button::button, theme};
+use super::theme;
 
 pub struct ActionPanelPlugin;
 
@@ -51,7 +52,7 @@ impl Plugin for ActionPanelPlugin {
     }
 }
 
-fn setup_buttons_panel(mut commands: Commands) {
+fn setup_buttons_panel(mut commands: Commands, handles: Res<UiAssets>) {
     let root = commands
         .spawn(Node {
             position_type: PositionType::Absolute,
@@ -77,12 +78,24 @@ fn setup_buttons_panel(mut commands: Commands) {
         ))
         .id();
 
-    let new_button = button(&mut commands, "New", NewButton);
-    let clear_button = button(&mut commands, "Clear", ClearButton);
-    let gen_button = button(&mut commands, "Gen Fill", GenButton);
-    let gen_new_button = button(&mut commands, "Gen New", GenNewButton);
-    let publish_button = button(&mut commands, "Publish", PublishButton);
-    let open_climb_button = button(&mut commands, "Open", OpenClimbButton);
+    let new_button = commands
+        .spawn((button("New", handles.font.clone()), NewButton))
+        .id();
+    let clear_button = commands
+        .spawn((button("Clear", handles.font.clone()), ClearButton))
+        .id();
+    let gen_button = commands
+        .spawn((button("Gen Fill", handles.font.clone()), GenButton))
+        .id();
+    let gen_new_button = commands
+        .spawn((button("Gen New", handles.font.clone()), GenNewButton))
+        .id();
+    let publish_button = commands
+        .spawn((button("Publish", handles.font.clone()), PublishButton))
+        .id();
+    let open_climb_button = commands
+        .spawn((button("Open", handles.font.clone()), OpenClimbButton))
+        .id();
 
     commands.entity(container).add_children(&[
         new_button,

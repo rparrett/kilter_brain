@@ -18,10 +18,12 @@ use bevy::prelude::*;
 
 #[derive(Resource, Default)]
 pub struct KilterData {
+    pub leds: HashMap<u32, Led>,
     pub holes: HashMap<u32, Hole>,
     pub placements: HashMap<u32, Placement>,
     pub placement_roles: HashMap<u32, PlacementRole>,
     pub climbs: IndexMap<String, Climb>,
+    pub placement_id_to_led_position: HashMap<u32, u32>,
 }
 
 impl KilterData {
@@ -149,11 +151,55 @@ impl KilterData {
             .flatten()
             .collect();
 
+        let mut stmt = conn
+            .prepare(
+                "SELECT
+                    id, product_size_id, hole_id, position
+                FROM leds
+                WHERE product_size_id = 10",
+            )
+            .unwrap();
+
+        let leds = stmt
+            .query_map([], |row| {
+                Ok((
+                    row.get(0)?,
+                    Led {
+                        id: row.get(0)?,
+                        product_size_id: row.get(1)?,
+                        hole_id: row.get(2)?,
+                        position: row.get(3)?,
+                    },
+                ))
+            })
+            .unwrap()
+            .flatten()
+            .collect();
+
+        let mut stmt = conn
+            .prepare(
+                "SELECT
+                    placements.id,
+                    leds.position
+                FROM placements
+                INNER JOIN leds ON leds.hole_id = placements.hole_id AND leds.product_size_id = 10
+                WHERE placements.layout_id = 1",
+            )
+            .unwrap();
+
+        let placement_id_to_led_position = stmt
+            .query_map([], |row| Ok((row.get(0)?, row.get(1)?)))
+            .unwrap()
+            .flatten()
+            .collect();
+
         Ok(Self {
             holes,
             placements,
             placement_roles,
             climbs,
+            leds,
+            placement_id_to_led_position,
         })
     }
 
@@ -285,6 +331,14 @@ pub struct Climb {
     pub angle: Option<u32>,
 }
 
+#[derive(Serialize, Deserialize, Default, Debug, Clone)]
+pub struct Led {
+    pub id: u32,
+    pub product_size_id: u32,
+    pub hole_id: u32,
+    pub position: u32,
+}
+
 // TODO can we parse into a HashMap<u32, u32>?
 pub fn placements_and_roles<'a, I>() -> impl Parser<I, Output = Vec<(u32, u32)>>
 where
@@ -305,6 +359,6 @@ where
 pub fn parse_placements_and_roles(input: &str) -> Result<Vec<(u32, u32)>, String> {
     match placements_and_roles().easy_parse(combine::stream::position::Stream::new(input)) {
         Ok((output, _remaining_input)) => Ok(output),
-        Err(err) => Err(format!("{}", err)),
+        Err(err) => Err(format!("{err}")),
     }
 }

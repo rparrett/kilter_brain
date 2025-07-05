@@ -16,7 +16,7 @@ fn main() {
     let kd = {
         let mut kd = KilterData::from_sqlite("../kilter_brain_data/db.sqlite3").unwrap();
         if let Err(e) = kd.json_update_files("../kilter_brain_data/api_json") {
-            eprintln!("Failed to load JSON updates. {:?}", e);
+            eprintln!("Failed to load JSON updates. {e:?}");
         };
         kd
     };

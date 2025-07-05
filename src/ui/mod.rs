@@ -30,5 +30,22 @@ impl Plugin for UiPlugin {
             FontPlugin,
             SearchPanelPlugin,
         ));
+        app.init_resource::<UiAssets>();
+    }
+}
+
+#[derive(Resource)]
+pub struct UiAssets {
+    font: Handle<Font>,
+    symbol_font: Handle<Font>,
+}
+impl FromWorld for UiAssets {
+    fn from_world(world: &mut World) -> Self {
+        let asset_server = world.resource::<AssetServer>();
+
+        Self {
+            font: asset_server.load("NotoSans-Regular.ttf"),
+            symbol_font: asset_server.load("lucide.ttf"),
+        }
     }
 }
