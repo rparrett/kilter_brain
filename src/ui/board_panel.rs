@@ -138,6 +138,7 @@ fn nearby_boards(
                 Button,
                 ConnectButton(board.id.clone()),
                 Node::default(),
+                BackgroundColor(theme::CONTAINER_BG.into()),
                 children![Text::new(&board.name)],
             ));
         }
