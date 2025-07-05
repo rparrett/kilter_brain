@@ -7,6 +7,7 @@ pub struct BoardConnectionPlugin;
 impl Plugin for BoardConnectionPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<NearbyBoards>();
+        app.init_resource::<BoardConnection>();
         app.add_event::<StartScan>();
         app.add_event::<StopScan>();
         app.add_event::<Connect>();
@@ -22,6 +23,12 @@ pub struct BoardDevice {
 
 #[derive(Resource, Default, Eq, PartialEq)]
 pub struct NearbyBoards(pub Vec<BoardDevice>);
+
+#[derive(Resource, Default, Eq, PartialEq)]
+pub struct BoardConnection {
+    pub connected: bool,
+    pub scanning: bool,
+}
 
 #[derive(Event, Default)]
 pub struct StartScan;

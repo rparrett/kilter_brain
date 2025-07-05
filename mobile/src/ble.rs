@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 use kilter_brain::{
-    board_connection::{BoardDevice, Connect, NearbyBoards, StartScan, StopScan, WriteToBoard},
+    board_connection::{
+        self, BoardConnection, BoardDevice, Connect, NearbyBoards, StartScan, StopScan,
+        WriteToBoard,
+    },
     kilter_data::KilterData,
 };
 use serde::{Deserialize, Serialize};
@@ -253,13 +256,10 @@ fn write_to_board(mut events: EventReader<WriteToBoard>) {
 }
 
 fn scan_poll(
-    mut connection_initialized: Local<bool>,
-    mut wrote_test_data: Local<bool>,
-    mut delay: Local<u32>,
-    kd: Res<KilterData>,
     mut timer: ResMut<ScanPollTimer>,
     time: Res<Time>,
     mut nearby_boards: ResMut<NearbyBoards>,
+    mut board_connection: ResMut<BoardConnection>,
 ) {
     timer.0.tick(time.delta());
     if !timer.0.just_finished() {
@@ -288,45 +288,8 @@ fn scan_poll(
     }
 
     nearby_boards.set_if_neq(NearbyBoards(boards));
-
-    // for device in state.devices {
-    //     if device.advertised_name.starts_with("Fake Kilter")
-    //         && !*connection_initialized
-    //         && !state.is_connected
-    //     {
-    //         info!("BLE: rust wants to connect to Fake Kilter");
-    //         connect_to_device(&device.id);
-    //         *connection_initialized = true;
-    //     }
-    // }
-
-    // if state.is_connected && !*wrote_test_data && *delay < 5 {
-    //     info!("BLE: Delaying");
-    //     *delay += 1;
-    // }
-
-    // if state.is_connected && !*wrote_test_data && *delay >= 5 {
-    //     info!("BLE: rust knows we're connected. Writing test data");
-
-    //     let placement_color = [
-    //         (1145, (255, 0, 0)),
-    //         (1146, (255, 0, 0)),
-    //         (1149, (255, 0, 0)),
-    //         (1186, (255, 0, 0)),
-    //     ];
-
-    //     let position_color = placement_color
-    //         .iter()
-    //         .flat_map(|(placement, color)| {
-    //             let Some(position) = kd.placement_id_to_led_position.get(placement) else {
-    //                 return None;
-    //             };
-    //             Some((*position as u16, *color))
-    //         })
-    //         .collect::<Vec<_>>();
-
-    //     let encoded = encode_holds_data(&position_color);
-    //     write_to_characteristic(SERVICE_UUID, CHARACTERISTIC_UUID, &encoded);
-    //     *wrote_test_data = true;
-    // }
+    board_connection.set_if_neq(BoardConnection {
+        connected: state.is_connected,
+        scanning: state.is_scanning,
+    });
 }
