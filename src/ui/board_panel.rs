@@ -167,7 +167,7 @@ fn nearby_boards(
     };
 
     node.display =
-        if nearby_boards.0.len() > 0 && board_connection.scanning && !board_connection.connected {
+        if !nearby_boards.0.is_empty() && board_connection.scanning && !board_connection.connected {
             Display::Block
         } else {
             Display::None

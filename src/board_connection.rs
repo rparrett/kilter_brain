@@ -61,9 +61,7 @@ impl WriteToBoard {
                     15 => (255, 0, 255),
                     _ => (0, 0, 0),
                 };
-                let Some(position) = kd.placement_id_to_led_position.get(placement_id) else {
-                    return None;
-                };
+                let position = kd.placement_id_to_led_position.get(placement_id)?;
                 Some((*position as u16, color))
             })
             .collect::<Vec<_>>();

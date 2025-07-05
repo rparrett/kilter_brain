@@ -359,6 +359,6 @@ where
 pub fn parse_placements_and_roles(input: &str) -> Result<Vec<(u32, u32)>, String> {
     match placements_and_roles().easy_parse(combine::stream::position::Stream::new(input)) {
         Ok((output, _remaining_input)) => Ok(output),
-        Err(err) => Err(format!("{}", err)),
+        Err(err) => Err(format!("{err}")),
     }
 }
