@@ -166,12 +166,14 @@ fn nearby_boards(
         return;
     };
 
-    node.display =
-        if !nearby_boards.0.is_empty() && board_connection.scanning && !board_connection.connected {
-            Display::Block
-        } else {
-            Display::None
-        };
+    node.display = if !nearby_boards.0.is_empty()
+        && board_connection.scanning
+        && !board_connection.connected
+    {
+        Display::Block
+    } else {
+        Display::None
+    };
 
     commands.entity(entity).despawn_related::<Children>();
 

@@ -2,8 +2,9 @@ import CoreBluetooth
 import Foundation
 
 @_cdecl("ble_start_scan")
-public func ble_start_scan() {
-    BleManager.shared.scan()
+public func ble_start_scan(_ serviceUUID: UnsafePointer<CChar>) {
+    let uuidString = String(cString: serviceUUID)
+    BleManager.shared.scan(serviceUUID: uuidString)
 }
 
 @_cdecl("ble_stop_scan")
@@ -111,17 +112,16 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate,
         centralManager = CBCentralManager(delegate: self, queue: nil)
     }
 
-    func scan() {
+    func scan(serviceUUID: String) {
         guard isOn else {
             return
         }
 
         if !isScanning {
             discoveredPeripherals.removeAll()
-            let targetServiceUUID = CBUUID(
-                string: "4488B571-7806-4DF6-BCFF-A2897E4953FF")
+
             centralManager.scanForPeripherals(
-                withServices: [targetServiceUUID], options: nil)
+                withServices: [CBUUID(string: serviceUUID)], options: nil)
             isScanning = true
         }
     }

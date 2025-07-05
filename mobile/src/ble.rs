@@ -6,8 +6,9 @@ use kilter_brain::board_connection::{
 use serde::{Deserialize, Serialize};
 use std::ffi;
 
-const SERVICE_UUID: &str = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E";
-const CHARACTERISTIC_UUID: &str = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E";
+const ADVERTISING_SERVICE_UUID: &str = "4488B571-7806-4DF6-BCFF-A2897E4953FF";
+const DATA_SERVICE_UUID: &str = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E";
+const DATA_CHARACTERISTIC: &str = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E";
 // Our esp32 kilter board facsimile fails to process any more than 20 bytes at a time.
 // It's not clear if this is a limitation of the facsimile, or if it's also an issue with
 // a real board. However, the official kilter app also doesn't broach this limit when
@@ -22,8 +23,8 @@ pub enum ApiLevel {
 }
 
 #[derive(Resource)]
-pub struct ScanPollTimer(Timer);
-impl Default for ScanPollTimer {
+pub struct PollStateTimer(Timer);
+impl Default for PollStateTimer {
     fn default() -> Self {
         Self(Timer::from_seconds(0.2, TimerMode::Repeating))
     }
@@ -45,7 +46,7 @@ pub struct BleDevice {
 }
 
 unsafe extern "C" {
-    fn ble_start_scan();
+    fn ble_start_scan(service_uuid: *const ffi::c_char);
     fn ble_stop_scan();
     fn ble_get_state_json() -> *const ffi::c_char;
     fn ble_free_string(ptr: *const ffi::c_char);
@@ -81,6 +82,13 @@ fn connect_to_device(device_id: &str) -> bool {
     unsafe {
         let c_str = ffi::CString::new(device_id).unwrap();
         ble_connect(c_str.as_ptr())
+    }
+}
+
+pub fn start_scan_with_uuid(service_uuid: &str) {
+    unsafe {
+        let c_str = ffi::CString::new(service_uuid).unwrap();
+        ble_start_scan(c_str.as_ptr());
     }
 }
 
@@ -220,31 +228,33 @@ impl Plugin for BlePlugin {
         app.add_systems(
             Update,
             (
-                scan_poll,
-                start_scan,
-                stop_scan,
-                connect,
-                disconnect,
-                write_to_board,
+                poll_state,
+                start_scan_event,
+                stop_scan_event,
+                connect_event,
+                disconnect_event,
+                write_to_board_event,
             ),
         );
-        app.init_resource::<ScanPollTimer>();
+        app.init_resource::<PollStateTimer>();
     }
 }
 
-fn start_scan(mut events: EventReader<StartScan>) {
+fn start_scan_event(mut events: EventReader<StartScan>) {
     if events.is_empty() {
         return;
     }
 
     info!("BLE: start scan requested");
 
-    unsafe { ble_start_scan() };
+    // Use the Kilter board service UUID defined as a constant
+
+    start_scan_with_uuid(ADVERTISING_SERVICE_UUID);
 
     events.clear();
 }
 
-fn stop_scan(mut events: EventReader<StopScan>) {
+fn stop_scan_event(mut events: EventReader<StopScan>) {
     if events.is_empty() {
         return;
     }
@@ -256,29 +266,29 @@ fn stop_scan(mut events: EventReader<StopScan>) {
     events.clear();
 }
 
-fn connect(mut events: EventReader<Connect>) {
+fn connect_event(mut events: EventReader<Connect>) {
     for event in events.read() {
         connect_to_device(&event.device_id);
         unsafe { ble_stop_scan() };
     }
 }
 
-fn disconnect(mut events: EventReader<Disconnect>) {
+fn disconnect_event(mut events: EventReader<Disconnect>) {
     for _ in events.read() {
         info!("BLE: disconnect event recv");
         unsafe { ble_disconnect() };
     }
 }
 
-fn write_to_board(mut events: EventReader<WriteToBoard>) {
+fn write_to_board_event(mut events: EventReader<WriteToBoard>) {
     for event in events.read() {
         let encoded = encode_holds_data(&event.0, ApiLevel::Three);
-        write_to_characteristic(SERVICE_UUID, CHARACTERISTIC_UUID, &encoded);
+        write_to_characteristic(DATA_SERVICE_UUID, DATA_CHARACTERISTIC, &encoded);
     }
 }
 
-fn scan_poll(
-    mut timer: ResMut<ScanPollTimer>,
+fn poll_state(
+    mut timer: ResMut<PollStateTimer>,
     time: Res<Time>,
     mut nearby_boards: ResMut<NearbyBoards>,
     mut board_connection: ResMut<BoardConnection>,
