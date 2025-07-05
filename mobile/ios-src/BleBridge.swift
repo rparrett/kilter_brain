@@ -11,11 +11,6 @@ public func ble_stop_scan() {
     BleManager.shared.stop()
 }
 
-public struct BleDevice {
-    public let name: String
-    public let identifier: UUID
-}
-
 @_cdecl("ble_get_state_json")
 public func ble_get_state_json() -> UnsafePointer<CChar>? {
     let state = BleManager.shared.poll()
@@ -45,7 +40,6 @@ public func ble_get_state_json() -> UnsafePointer<CChar>? {
         return nil
     }
 
-    // Allocate a C string
     let cString = strdup(jsonStr)
     return UnsafePointer(cString)
 }
@@ -119,14 +113,13 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate,
 
     func scan() {
         guard isOn else {
-            print("Bluetooth not powered on.")
             return
         }
 
         if !isScanning {
             discoveredPeripherals.removeAll()
             let targetServiceUUID = CBUUID(
-                string: "4488B571-7806-4DF6-BCFF-A2897E4953FF")  // Replace as needed
+                string: "4488B571-7806-4DF6-BCFF-A2897E4953FF")
             centralManager.scanForPeripherals(
                 withServices: [targetServiceUUID], options: nil)
             isScanning = true
