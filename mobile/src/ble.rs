@@ -67,14 +67,12 @@ fn get_ble_state() -> Option<BleState> {
             return None;
         }
 
-        // Convert C string to Rust String
         let c_str = ffi::CStr::from_ptr(ptr);
         let json_str = c_str.to_string_lossy();
 
-        // Parse JSON into BleState struct
         let result = serde_json::from_str::<BleState>(&json_str).ok();
 
-        ble_free_string(ptr); // Prevent memory leak
+        ble_free_string(ptr);
         result
     }
 }
@@ -134,7 +132,7 @@ fn calculate_checksum(data: &[u8]) -> u8 {
     ((!i) & 255) as u8
 }
 
-/// Encode RGB to 2-2-2 format (6 bits total): 2 bits each for R, G, B
+/// Encode 6-bit RGB (2-2-2)
 fn encode_rgb222(r: u8, g: u8, b: u8) -> u8 {
     let r_compressed = (r >> 6) & 0x03;
     let g_compressed = (g >> 6) & 0x03;
@@ -142,7 +140,7 @@ fn encode_rgb222(r: u8, g: u8, b: u8) -> u8 {
     (r_compressed << 4) | (g_compressed << 2) | b_compressed
 }
 
-/// Encode RGB to 3-3-2 format (8 bits total): 3 bits each for R, G; 2 bits for B
+/// Encode 8-bit RGB (3-3-2)
 fn encode_rgb332(r: u8, g: u8, b: u8) -> u8 {
     let r_compressed = (r >> 5) & 0x07;
     let g_compressed = (g >> 5) & 0x07;
@@ -153,14 +151,12 @@ fn encode_rgb332(r: u8, g: u8, b: u8) -> u8 {
 pub fn encode_holds_data(holds: &[(u16, (u8, u8, u8))], api_level: ApiLevel) -> Vec<u8> {
     let mut packet_data = Vec::new();
 
-    // Single packet marker depends on API level
     let packet_marker = match api_level {
         ApiLevel::Two => 80,   // 'P' - single packet
         ApiLevel::Three => 84, // 'T' - single packet
     };
     packet_data.push(packet_marker);
 
-    // Encode each hold
     for &(position, (r, g, b)) in holds {
         match api_level {
             ApiLevel::Two => {
@@ -191,7 +187,6 @@ pub fn encode_holds_data(holds: &[(u16, (u8, u8, u8))], api_level: ApiLevel) -> 
         }
     }
 
-    // Build complete packet
     let mut packet = vec![
         // First byte is always 1
         1,
@@ -200,10 +195,10 @@ pub fn encode_holds_data(holds: &[(u16, (u8, u8, u8))], api_level: ApiLevel) -> 
         // Fourth byte is always 2
         2,
     ];
-    packet.extend_from_slice(&packet_data); // Packet data
-    packet.push(3); // Final byte is always 3
+    packet.extend_from_slice(&packet_data);
+    // Final byte is always 3
+    packet.push(3);
 
-    // Log the encoded data in hex format
     let hex_string = packet
         .iter()
         .map(|b| format!("{b:02X}"))
