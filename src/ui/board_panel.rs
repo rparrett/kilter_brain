@@ -33,6 +33,7 @@ impl Plugin for BoardPanelPlugin {
                 nearby_boards,
                 scan_button,
                 connect_button,
+                scan_button_text,
             ),
         );
     }
@@ -121,6 +122,30 @@ fn scan_button(
         } else {
             start_scan_events.write_default();
         }
+    }
+}
+
+fn scan_button_text(
+    board_connection: Res<BoardConnection>,
+    mut text_query: Query<&mut Text>,
+    button: Query<&Children, With<ScanButton>>,
+) {
+    if !board_connection.is_changed() {
+        return;
+    }
+
+    let Ok(children) = button.single() else {
+        return;
+    };
+    let mut iter = text_query.iter_many_mut(children);
+    while let Some(mut text) = iter.fetch_next() {
+        text.0 = if board_connection.connected {
+            "\u{E1B8}".to_string()
+        } else if board_connection.scanning {
+            "\u{E1BA}".to_string()
+        } else {
+            "\u{E060}".to_string()
+        };
     }
 }
 
