@@ -9,7 +9,7 @@ use std::ffi;
 const ADVERTISING_SERVICE_UUID: &str = "4488B571-7806-4DF6-BCFF-A2897E4953FF";
 const DATA_SERVICE_UUID: &str = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E";
 const DATA_CHARACTERISTIC: &str = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E";
-// Our esp32 kilter board facsimile fails to process any more than 20 bytes at a time.
+// Our ESP32 kilter board facsimile fails to process any more than 20 bytes at a time.
 // It's not clear if this is a limitation of the facsimile, or if it's also an issue with
 // a real board. However, the official kilter app also doesn't broach this limit when
 // sending data to the facsimile.
@@ -18,6 +18,8 @@ const BLE_CHUNK_SIZE: usize = 20;
 
 #[derive(Debug, Clone, Copy)]
 pub enum ApiLevel {
+    // Not sure which API level the nearby boards are yet
+    #[allow(dead_code)]
     Two,
     Three,
 }
