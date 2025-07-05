@@ -1,8 +1,11 @@
 use bevy::prelude::*;
 
-use crate::kilter_board::ChangeClimbEvent;
+use crate::{
+    kilter_board::ChangeClimbEvent,
+    ui::{button::button_bundle, UiAssets},
+};
 
-use super::{button::button, theme};
+use super::theme;
 
 #[derive(Component)]
 pub struct PrevButton;
@@ -18,7 +21,7 @@ impl Plugin for NavPanelPlugin {
     }
 }
 
-fn setup_nav_panel(mut commands: Commands) {
+fn setup_nav_panel(mut commands: Commands, handles: Res<UiAssets>) {
     let container = commands
         .spawn((
             Node {
@@ -34,8 +37,19 @@ fn setup_nav_panel(mut commands: Commands) {
         ))
         .id();
 
-    let prev_button = button(&mut commands, "←", PrevButton);
-    let next_button = button(&mut commands, "→", NextButton);
+    let prev_button = commands
+        .spawn((
+            button_bundle("\u{E04C}", handles.symbol_font.clone()),
+            PrevButton,
+        ))
+        .id();
+
+    let next_button = commands
+        .spawn((
+            button_bundle("\u{E04D}", handles.symbol_font.clone()),
+            PrevButton,
+        ))
+        .id();
 
     commands
         .entity(container)

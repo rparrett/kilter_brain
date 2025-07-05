@@ -31,6 +31,7 @@ fn interaction(
     }
 }
 
+#[deprecated]
 pub fn button<M: Component>(commands: &mut Commands, text: &str, marker: M) -> Entity {
     commands
         .spawn((
@@ -57,4 +58,28 @@ pub fn button<M: Component>(commands: &mut Commands, text: &str, marker: M) -> E
             ));
         })
         .id()
+}
+
+pub fn button_bundle(text: &str, font: Handle<Font>) -> impl Bundle {
+    (
+        Button,
+        Node {
+            height: Val::Px(30.0),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            padding: UiRect::horizontal(Val::Px(12.)),
+            ..default()
+        },
+        BorderRadius::all(Val::Px(3.)),
+        BackgroundColor(theme::NORMAL_BUTTON.into()),
+        Children::spawn(Spawn((
+            Text::new(text),
+            TextFont {
+                font_size: theme::FONT_SIZE,
+                font,
+                ..default()
+            },
+            TextColor(theme::FONT_COLOR.into()),
+        ))),
+    )
 }
