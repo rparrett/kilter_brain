@@ -75,7 +75,7 @@ fn setup_nav_panel(mut commands: Commands) {
             row_gap: Val::Px(5.),
             ..default()
         },
-        BorderRadius::left(theme::CONTAINER_BORDER_RADIUS),
+        BorderRadius::right(theme::CONTAINER_BORDER_RADIUS),
         BackgroundColor(theme::CONTAINER_BG.into()),
     ));
 }
@@ -127,7 +127,6 @@ fn nearby_boards(
     board_connection: Res<BoardConnection>,
     mut panels: Query<(Entity, &mut Node), With<NearbyBoardsPanel>>,
 ) {
-    // TODO maybe also listen for start/stop scanning events
     if !nearby_boards.is_changed() && !board_connection.is_changed() {
         return;
     }
