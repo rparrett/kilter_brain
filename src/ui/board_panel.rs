@@ -183,9 +183,19 @@ fn nearby_boards(
             parent.spawn((
                 Button,
                 ConnectButton(board.id.clone()),
-                Node::default(),
+                Node {
+                    padding: theme::CONTAINER_PADDING,
+                    ..default()
+                },
                 BackgroundColor(theme::CONTAINER_BG.into()),
-                children![Text::new(display_name)],
+                children![(
+                    Text::new(display_name),
+                    TextFont {
+                        font_size: theme::FONT_SIZE_SM,
+                        ..default()
+                    },
+                    TextColor(theme::FONT_COLOR.into()),
+                )],
             ));
         }
     });
