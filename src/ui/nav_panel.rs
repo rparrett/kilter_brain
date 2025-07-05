@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     kilter_board::ChangeClimbEvent,
-    ui::{button::button_bundle, UiAssets},
+    ui::{button::button, UiAssets},
 };
 
 use super::theme;
@@ -38,17 +38,11 @@ fn setup_nav_panel(mut commands: Commands, handles: Res<UiAssets>) {
         .id();
 
     let prev_button = commands
-        .spawn((
-            button_bundle("\u{E04C}", handles.symbol_font.clone()),
-            PrevButton,
-        ))
+        .spawn((button("\u{E04C}", handles.symbol_font.clone()), PrevButton))
         .id();
 
     let next_button = commands
-        .spawn((
-            button_bundle("\u{E04D}", handles.symbol_font.clone()),
-            PrevButton,
-        ))
+        .spawn((button("\u{E04D}", handles.symbol_font.clone()), PrevButton))
         .id();
 
     commands

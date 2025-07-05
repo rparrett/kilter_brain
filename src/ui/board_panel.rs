@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::{
     board_connection::{BoardConnection, Connect, Disconnect, NearbyBoards, StartScan, StopScan},
     kilter_board::BoardAngle,
-    ui::{button::button_bundle, UiAssets},
+    ui::{button::button, UiAssets},
 };
 
 use super::theme;
@@ -38,7 +38,7 @@ impl Plugin for BoardPanelPlugin {
     }
 }
 
-fn setup_nav_panel(mut commands: Commands, assets: Res<UiAssets>) {
+fn setup_nav_panel(mut commands: Commands, handles: Res<UiAssets>) {
     let container = commands
         .spawn((
             Node {
@@ -55,13 +55,10 @@ fn setup_nav_panel(mut commands: Commands, assets: Res<UiAssets>) {
         .id();
 
     let angle_button = commands
-        .spawn((button_bundle("0°", assets.font.clone()), AngleButton))
+        .spawn((button("0°", handles.font.clone()), AngleButton))
         .id();
     let scan_button = commands
-        .spawn((
-            button_bundle("\u{E060}", assets.symbol_font.clone()),
-            ScanButton,
-        ))
+        .spawn((button("\u{E060}", handles.symbol_font.clone()), ScanButton))
         .id();
 
     commands
