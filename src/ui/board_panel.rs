@@ -177,12 +177,13 @@ fn nearby_boards(
 
     commands.entity(entity).with_children(|parent| {
         for board in &nearby_boards.0 {
+            let display_name = board.name.split(&['#', '@'][..]).next().unwrap();
             parent.spawn((
                 Button,
                 ConnectButton(board.id.clone()),
                 Node::default(),
                 BackgroundColor(theme::CONTAINER_BG.into()),
-                children![Text::new(&board.name)],
+                children![Text::new(display_name)],
             ));
         }
     });
