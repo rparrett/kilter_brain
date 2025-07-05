@@ -7,6 +7,7 @@ AI route-setting via [`kilter_brain_gen`](https://github.com/rparrett/kilter_bra
 ## TODO
 
 - native: Automatic updates from kilter API
+- ios: It's probably possible to get sqlite to work
 - Add route authoring
   - [X] Edit placements
   - [ ] Edit name, setter name, description, etc.
