@@ -96,8 +96,8 @@ pub fn write_to_characteristic(service_uuid: &str, characteristic_uuid: &str, da
         info!("BLE:  [{}]: 0x{:02X} ({:3}) {}", index, byte, byte, ascii);
     }
 
-    let service_c_str = unsafe { ffi::CString::new(service_uuid).unwrap() };
-    let characteristic_c_str = unsafe { ffi::CString::new(characteristic_uuid).unwrap() };
+    let service_c_str = ffi::CString::new(service_uuid).unwrap();
+    let characteristic_c_str = ffi::CString::new(characteristic_uuid).unwrap();
 
     for (chunk_index, chunk) in data.chunks(BLE_CHUNK_SIZE).enumerate() {
         info!("BLE: Writing chunk {} ({} bytes)", chunk_index, chunk.len());
