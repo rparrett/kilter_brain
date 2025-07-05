@@ -155,8 +155,8 @@ pub fn encode_holds_data(holds: &[(u16, (u8, u8, u8))], api_level: ApiLevel) -> 
 
     // Single packet marker depends on API level
     let packet_marker = match api_level {
-        ApiLevel::Two => 80,   // 'P' - single packet (API level 2)
-        ApiLevel::Three => 84, // 'T' - single packet (API level 3)
+        ApiLevel::Two => 80,   // 'P' - single packet
+        ApiLevel::Three => 84, // 'T' - single packet
     };
     packet_data.push(packet_marker);
 
@@ -164,7 +164,6 @@ pub fn encode_holds_data(holds: &[(u16, (u8, u8, u8))], api_level: ApiLevel) -> 
     for &(position, (r, g, b)) in holds {
         match api_level {
             ApiLevel::Two => {
-                // API Level 2: 2 bytes per hold
                 // First byte: lowest 8 bits of position
                 let byte1 = (position & 0xFF) as u8;
 
@@ -176,7 +175,6 @@ pub fn encode_holds_data(holds: &[(u16, (u8, u8, u8))], api_level: ApiLevel) -> 
                 packet_data.push(byte2);
             }
             ApiLevel::Three => {
-                // API Level 3: 3 bytes per hold
                 // First byte: lowest 8 bits of position
                 let byte1 = (position & 0xFF) as u8;
 
@@ -194,18 +192,21 @@ pub fn encode_holds_data(holds: &[(u16, (u8, u8, u8))], api_level: ApiLevel) -> 
     }
 
     // Build complete packet
-    let mut packet = Vec::new();
-    packet.push(1); // First byte always 1
-    packet.push(packet_data.len() as u8); // Size of packet data
-    packet.push(calculate_checksum(&packet_data)); // Checksum
-    packet.push(2); // Fourth byte always 2
+    let mut packet = vec![
+        // First byte is always 1
+        1,
+        packet_data.len() as u8,
+        calculate_checksum(&packet_data),
+        // Fourth byte is always 2
+        2,
+    ];
     packet.extend_from_slice(&packet_data); // Packet data
-    packet.push(3); // Final byte always 3
+    packet.push(3); // Final byte is always 3
 
     // Log the encoded data in hex format
     let hex_string = packet
         .iter()
-        .map(|b| format!("{:02X}", b))
+        .map(|b| format!("{b:02X}"))
         .collect::<Vec<String>>()
         .join(" ");
     info!(
@@ -237,7 +238,7 @@ impl Plugin for BlePlugin {
 }
 
 fn start_scan(mut events: EventReader<StartScan>) {
-    if events.len() == 0 {
+    if events.is_empty() {
         return;
     }
 
@@ -249,7 +250,7 @@ fn start_scan(mut events: EventReader<StartScan>) {
 }
 
 fn stop_scan(mut events: EventReader<StopScan>) {
-    if events.len() == 0 {
+    if events.is_empty() {
         return;
     }
 
