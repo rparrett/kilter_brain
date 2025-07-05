@@ -32,7 +32,7 @@ impl Default for GenApiSettings {
             #[cfg(not(debug_assertions))]
             host: "https://www.robparrett.com:5002".to_string(),
             #[cfg(debug_assertions)]
-            host: "http://localhost:5001".to_string(),
+            host: "http://127.0.0.1:5000".to_string(),
         }
     }
 }
