@@ -17,7 +17,7 @@ impl Plugin for GenApiPlugin {
             .register_request_type::<GeneratedClimbs>()
             // Used by publish button, for now
             .register_request_type::<GeneratedClimb>()
-            .add_systems(Update, handle_response);
+            .add_systems(Update, (handle_response, handle_error));
     }
 }
 
@@ -72,5 +72,11 @@ fn handle_response(
         }
 
         selected.0 = kilter.climbs.len() - response.len();
+    }
+}
+
+fn handle_error(mut ev_error: EventReader<TypedResponseError<GeneratedClimbs>>) {
+    for error in ev_error.read() {
+        warn!("Error generating climbs: {}", error.err);
     }
 }
