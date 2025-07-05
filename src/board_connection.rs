@@ -55,10 +55,10 @@ impl WriteToBoard {
             .iter()
             .flat_map(|(placement_id, role_id)| {
                 let color = match *role_id {
-                    12 => (255, 0, 0),
-                    13 => (0, 255, 0),
-                    14 => (0, 0, 255),
-                    15 => (255, 0, 255),
+                    12 => (0, 255, 0),
+                    13 => (0, 255, 255),
+                    14 => (255, 0, 255),
+                    15 => (255, 165, 0),
                     _ => (0, 0, 0),
                 };
                 let position = kd.placement_id_to_led_position.get(placement_id)?;
