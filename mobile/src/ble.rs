@@ -15,6 +15,7 @@ const CHARACTERISTIC_UUID: &str = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E";
 // It's not clear if this is a limitation of the facsimile, or if it's also an issue with
 // a real board. However, the official kilter app also doesn't broach this limit when
 // sending data to the facsimile.
+// 20 bytes seems to be the default MTU for BLE.
 const BLE_CHUNK_SIZE: usize = 20;
 
 #[derive(Resource)]

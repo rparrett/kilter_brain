@@ -21,6 +21,7 @@ AI route-setting via [`kilter_brain_gen`](https://github.com/rparrett/kilter_bra
 - Add a "min armspan required" stat?
   Is this even possible? Do delaunay, then djikstras, then find the longest edge of the shortest path?
 - Make the "dude for scale" a ragdoll that can be dragged onto the board
+- BLE: we should determine the API level of the board and use the proper encoding scheme
 
 ## To get a recent APK
 
