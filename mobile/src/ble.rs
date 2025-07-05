@@ -15,6 +15,12 @@ const CHARACTERISTIC_UUID: &str = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E";
 // 20 bytes seems to be the default MTU for BLE.
 const BLE_CHUNK_SIZE: usize = 20;
 
+#[derive(Debug, Clone, Copy)]
+pub enum ApiLevel {
+    Two,
+    Three,
+}
+
 #[derive(Resource)]
 pub struct ScanPollTimer(Timer);
 impl Default for ScanPollTimer {
@@ -128,69 +134,63 @@ fn calculate_checksum(data: &[u8]) -> u8 {
     ((!i) & 255) as u8
 }
 
-pub fn encode_holds_data_level_2(holds: &[(u16, (u8, u8, u8))]) -> Vec<u8> {
-    let mut packet_data = Vec::new();
-
-    // Single packet marker (API level 2)
-    packet_data.push(80); // 'P' - single packet
-
-    // Encode each hold as 2 bytes
-    for &(position, (r, g, b)) in holds {
-        // Compress 8-bit RGB to 2 bits each (6 bits total)
-        let r_compressed = (r >> 6) & 0x03;
-        let g_compressed = (g >> 6) & 0x03;
-        let b_compressed = (b >> 6) & 0x03;
-
-        // First byte: lowest 8 bits of position
-        let byte1 = (position & 0xFF) as u8;
-
-        // Second byte: highest 2 bits of position + 6 bits of RGB
-        let byte2 = ((position >> 8) & 0x03) as u8
-            | (r_compressed << 6)
-            | (g_compressed << 4)
-            | (b_compressed << 2);
-
-        packet_data.push(byte1);
-        packet_data.push(byte2);
-    }
-
-    // Build complete packet
-    let mut packet = Vec::new();
-    packet.push(1); // First byte always 1
-    packet.push(packet_data.len() as u8); // Size of packet data
-    packet.push(calculate_checksum(&packet_data)); // Checksum
-    packet.push(2); // Fourth byte always 2
-    packet.extend_from_slice(&packet_data); // Packet data
-    packet.push(3); // Final byte always 3
-
-    packet
+/// Encode RGB to 2-2-2 format (6 bits total): 2 bits each for R, G, B
+fn encode_rgb222(r: u8, g: u8, b: u8) -> u8 {
+    let r_compressed = (r >> 6) & 0x03;
+    let g_compressed = (g >> 6) & 0x03;
+    let b_compressed = (b >> 6) & 0x03;
+    (r_compressed << 4) | (g_compressed << 2) | b_compressed
 }
 
-pub fn encode_holds_data(holds: &[(u16, (u8, u8, u8))]) -> Vec<u8> {
+/// Encode RGB to 3-3-2 format (8 bits total): 3 bits each for R, G; 2 bits for B
+fn encode_rgb332(r: u8, g: u8, b: u8) -> u8 {
+    let r_compressed = (r >> 5) & 0x07;
+    let g_compressed = (g >> 5) & 0x07;
+    let b_compressed = (b >> 6) & 0x03;
+    (r_compressed << 5) | (g_compressed << 2) | b_compressed
+}
+
+pub fn encode_holds_data(holds: &[(u16, (u8, u8, u8))], api_level: ApiLevel) -> Vec<u8> {
     let mut packet_data = Vec::new();
 
-    // Single packet marker (API level 3)
-    packet_data.push(84); // 'T' - single packet
+    // Single packet marker depends on API level
+    let packet_marker = match api_level {
+        ApiLevel::Two => 80,   // 'P' - single packet (API level 2)
+        ApiLevel::Three => 84, // 'T' - single packet (API level 3)
+    };
+    packet_data.push(packet_marker);
 
-    // Encode each hold as 3 bytes
+    // Encode each hold
     for &(position, (r, g, b)) in holds {
-        // Compress RGB: R and G to 3 bits, B to 2 bits
-        let r_compressed = (r >> 5) & 0x07; // 3 bits
-        let g_compressed = (g >> 5) & 0x07; // 3 bits
-        let b_compressed = (b >> 6) & 0x03; // 2 bits
+        match api_level {
+            ApiLevel::Two => {
+                // API Level 2: 2 bytes per hold
+                // First byte: lowest 8 bits of position
+                let byte1 = (position & 0xFF) as u8;
 
-        // First byte: lowest 8 bits of position
-        let byte1 = (position & 0xFF) as u8;
+                // Second byte: highest 2 bits of position + 6 bits of RGB (2-2-2)
+                let rgb_encoded = encode_rgb222(r, g, b);
+                let byte2 = ((position >> 8) & 0x03) as u8 | (rgb_encoded << 2);
 
-        // Second byte: highest 8 bits of position
-        let byte2 = ((position >> 8) & 0xFF) as u8;
+                packet_data.push(byte1);
+                packet_data.push(byte2);
+            }
+            ApiLevel::Three => {
+                // API Level 3: 3 bytes per hold
+                // First byte: lowest 8 bits of position
+                let byte1 = (position & 0xFF) as u8;
 
-        // Third byte: RGB color (3R + 3G + 2B = 8 bits)
-        let byte3 = (r_compressed << 5) | (g_compressed << 2) | b_compressed;
+                // Second byte: highest 8 bits of position
+                let byte2 = ((position >> 8) & 0xFF) as u8;
 
-        packet_data.push(byte1);
-        packet_data.push(byte2);
-        packet_data.push(byte3);
+                // Third byte: RGB color (3-3-2)
+                let byte3 = encode_rgb332(r, g, b);
+
+                packet_data.push(byte1);
+                packet_data.push(byte2);
+                packet_data.push(byte3);
+            }
+        }
     }
 
     // Build complete packet
@@ -201,6 +201,19 @@ pub fn encode_holds_data(holds: &[(u16, (u8, u8, u8))]) -> Vec<u8> {
     packet.push(2); // Fourth byte always 2
     packet.extend_from_slice(&packet_data); // Packet data
     packet.push(3); // Final byte always 3
+
+    // Log the encoded data in hex format
+    let hex_string = packet
+        .iter()
+        .map(|b| format!("{:02X}", b))
+        .collect::<Vec<String>>()
+        .join(" ");
+    info!(
+        "BLE: Encoded packet {:?} ({} bytes): {}",
+        api_level,
+        packet.len(),
+        hex_string
+    );
 
     packet
 }
@@ -263,7 +276,7 @@ fn disconnect(mut events: EventReader<Disconnect>) {
 
 fn write_to_board(mut events: EventReader<WriteToBoard>) {
     for event in events.read() {
-        let encoded = encode_holds_data(&event.0);
+        let encoded = encode_holds_data(&event.0, ApiLevel::Three);
         write_to_characteristic(SERVICE_UUID, CHARACTERISTIC_UUID, &encoded);
     }
 }
