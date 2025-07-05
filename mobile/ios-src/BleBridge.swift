@@ -201,6 +201,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate,
             discoveredPeripherals.removeAll()
             peripheralAdvertisedNames.removeAll()
             allPeripherals.removeAll()
+            connectedPeripheral = nil
         }
     }
 
