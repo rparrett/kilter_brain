@@ -1,10 +1,6 @@
 use bevy::prelude::*;
-use kilter_brain::{
-    board_connection::{
-        self, BoardConnection, BoardDevice, Connect, NearbyBoards, StartScan, StopScan,
-        WriteToBoard,
-    },
-    kilter_data::KilterData,
+use kilter_brain::board_connection::{
+    BoardConnection, BoardDevice, Connect, NearbyBoards, StartScan, StopScan, WriteToBoard,
 };
 use serde::{Deserialize, Serialize};
 use std::ffi;
