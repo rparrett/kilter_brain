@@ -92,12 +92,12 @@ pub fn write_to_characteristic(service_uuid: &str, characteristic_uuid: &str, da
 
     for (index, &byte) in data.iter().enumerate() {
         let ascii = if byte.is_ascii_graphic() || byte == b' ' {
-            format!("'{}'", byte as char)
+            format!("{}", byte as char)
         } else {
             "·".to_string()
         };
 
-        info!("BLE:  [{}]: 0x{:02X} ({:3}) {}", index, byte, byte, ascii);
+        info!("BLE: [{:3}]: 0x{:02X} ({:3}) {}", index, byte, byte, ascii);
     }
 
     let service_c_str = ffi::CString::new(service_uuid).unwrap();
