@@ -8,6 +8,11 @@ use std::ffi;
 
 const SERVICE_UUID: &str = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E";
 const CHARACTERISTIC_UUID: &str = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E";
+// Our esp32 kilter board facsimile fails to process any more than 20 bytes at a time.
+// It's not clear if this is a limitation of the facsimile, or if it's also an issue with
+// a real board. However, the official kilter app also doesn't broach this limit when
+// sending data to the facsimile.
+const BLE_CHUNK_SIZE: usize = 20;
 
 #[derive(Resource)]
 pub struct ScanPollTimer(Timer);
@@ -74,7 +79,10 @@ fn connect_to_device(device_id: &str) -> bool {
 }
 
 pub fn write_to_characteristic(service_uuid: &str, characteristic_uuid: &str, data: &[u8]) -> bool {
-    info!("BLE: Writing to characteristic ({} bytes):", data.len());
+    info!(
+        "BLE: Writing to characteristic ({} bytes total):",
+        data.len()
+    );
 
     for (index, &byte) in data.iter().enumerate() {
         let ascii = if byte.is_ascii_graphic() || byte == b' ' {
@@ -86,17 +94,28 @@ pub fn write_to_characteristic(service_uuid: &str, characteristic_uuid: &str, da
         info!("BLE:  [{}]: 0x{:02X} ({:3}) {}", index, byte, byte, ascii);
     }
 
-    unsafe {
-        let service_c_str = ffi::CString::new(service_uuid).unwrap();
-        let characteristic_c_str = ffi::CString::new(characteristic_uuid).unwrap();
+    let service_c_str = unsafe { ffi::CString::new(service_uuid).unwrap() };
+    let characteristic_c_str = unsafe { ffi::CString::new(characteristic_uuid).unwrap() };
 
-        ble_write_characteristic(
-            service_c_str.as_ptr(),
-            characteristic_c_str.as_ptr(),
-            data.as_ptr(),
-            data.len(),
-        )
+    for (chunk_index, chunk) in data.chunks(BLE_CHUNK_SIZE).enumerate() {
+        info!("BLE: Writing chunk {} ({} bytes)", chunk_index, chunk.len());
+
+        let success = unsafe {
+            ble_write_characteristic(
+                service_c_str.as_ptr(),
+                characteristic_c_str.as_ptr(),
+                chunk.as_ptr(),
+                chunk.len(),
+            )
+        };
+
+        if !success {
+            info!("BLE: Failed to write chunk {}", chunk_index);
+            return false;
+        }
     }
+
+    true
 }
 
 fn calculate_checksum(data: &[u8]) -> u8 {

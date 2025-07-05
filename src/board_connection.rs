@@ -41,7 +41,6 @@ impl WriteToBoard {
     pub fn from_positions_and_roles(pr: &[(u32, u32)], kd: &KilterData) -> Self {
         let positions = pr
             .iter()
-            .take(4) // XXX
             .flat_map(|(placement_id, role_id)| {
                 let color = match *role_id {
                     12 => (255, 0, 0),
