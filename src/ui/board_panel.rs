@@ -1,7 +1,9 @@
 use bevy::prelude::*;
 
 use crate::{
-    board_connection::{self, BoardConnection, Connect, NearbyBoards, StartScan},
+    board_connection::{
+        self, BoardConnection, Connect, Disconnect, NearbyBoards, StartScan, StopScan,
+    },
     kilter_board::BoardAngle,
 };
 
@@ -103,10 +105,19 @@ fn angle_button_text(
 
 fn scan_button(
     query: Query<&Interaction, (With<ScanButton>, Changed<Interaction>)>,
-    mut events: EventWriter<StartScan>,
+    board_connection: Res<BoardConnection>,
+    mut start_scan_events: EventWriter<StartScan>,
+    mut stop_scan_events: EventWriter<StopScan>,
+    mut disconnect_events: EventWriter<Disconnect>,
 ) {
     if query.iter().any(|i| *i == Interaction::Pressed) {
-        events.write_default();
+        if board_connection.connected {
+            disconnect_events.write_default();
+        } else if board_connection.scanning {
+            stop_scan_events.write_default();
+        } else {
+            start_scan_events.write_default();
+        }
     }
 }
 

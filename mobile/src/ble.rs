@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use kilter_brain::board_connection::{
-    BoardConnection, BoardDevice, Connect, NearbyBoards, StartScan, StopScan, WriteToBoard,
+    BoardConnection, BoardDevice, Connect, Disconnect, NearbyBoards, StartScan, StopScan,
+    WriteToBoard,
 };
 use serde::{Deserialize, Serialize};
 use std::ffi;
@@ -43,6 +44,7 @@ unsafe extern "C" {
     fn ble_get_state_json() -> *const ffi::c_char;
     fn ble_free_string(ptr: *const ffi::c_char);
     fn ble_connect(id_str: *const ffi::c_char) -> bool;
+    fn ble_disconnect() -> bool;
     fn ble_write_characteristic(
         service_uuid: *const ffi::c_char,
         characteristic_uuid: *const ffi::c_char,
@@ -208,7 +210,14 @@ impl Plugin for BlePlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (scan_poll, start_scan, stop_scan, connect, write_to_board),
+            (
+                scan_poll,
+                start_scan,
+                stop_scan,
+                connect,
+                disconnect,
+                write_to_board,
+            ),
         );
         app.init_resource::<ScanPollTimer>();
     }
@@ -242,6 +251,13 @@ fn connect(mut events: EventReader<Connect>) {
     for event in events.read() {
         connect_to_device(&event.device_id);
         unsafe { ble_stop_scan() };
+    }
+}
+
+fn disconnect(mut events: EventReader<Disconnect>) {
+    for _ in events.read() {
+        info!("BLE: disconnect event recv");
+        unsafe { ble_disconnect() };
     }
 }
 

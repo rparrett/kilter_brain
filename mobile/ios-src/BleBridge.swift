@@ -68,6 +68,12 @@ public func ble_connect(_ idStr: UnsafePointer<CChar>) -> Bool {
     return BleManager.shared.connect(to: uuid)
 }
 
+@_cdecl("ble_disconnect")
+public func ble_disconnect() -> Bool {
+    print("BLE: disconnect")
+    return BleManager.shared.disconnect()
+}
+
 @_cdecl("ble_write_characteristic")
 public func ble_write_characteristic(
     _ serviceUUID: UnsafePointer<CChar>,
@@ -156,6 +162,17 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate,
         print("BLE: Connecting to peripheral \(id)")
         peripheral.delegate = self
         centralManager.connect(peripheral, options: nil)
+        return true
+    }
+
+    func disconnect() -> Bool {
+        guard let peripheral = connectedPeripheral else {
+            print("BLE: No connected peripheral to disconnect")
+            return false
+        }
+
+        print("BLE: Disconnecting from peripheral \(peripheral.identifier)")
+        centralManager.cancelPeripheralConnection(peripheral)
         return true
     }
 

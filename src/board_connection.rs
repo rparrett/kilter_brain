@@ -11,6 +11,7 @@ impl Plugin for BoardConnectionPlugin {
         app.add_event::<StartScan>();
         app.add_event::<StopScan>();
         app.add_event::<Connect>();
+        app.add_event::<Disconnect>();
         app.add_event::<WriteToBoard>();
     }
 }
@@ -35,6 +36,9 @@ pub struct StartScan;
 
 #[derive(Event, Default)]
 pub struct StopScan;
+
+#[derive(Event, Default)]
+pub struct Disconnect;
 
 #[derive(Event)]
 pub struct Connect {
