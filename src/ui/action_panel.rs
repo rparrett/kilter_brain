@@ -5,6 +5,7 @@ use std::fmt::Write;
 use uuid::Uuid;
 
 use crate::{
+    effects::PartyMode,
     gen_api::{GenApiSettings, GeneratedClimb, GeneratedClimbs},
     kilter_board::{BoardAngle, SelectedClimb},
     kilter_data::{Climb, KilterData},
@@ -28,6 +29,8 @@ struct GenNewButton;
 struct PublishButton;
 #[derive(Component)]
 struct OpenClimbButton;
+#[derive(Component)]
+struct PartyModeButton;
 
 #[derive(Serialize)]
 struct GenerateRequest {
@@ -47,6 +50,7 @@ impl Plugin for ActionPanelPlugin {
                 gen_new_button,
                 publish_button,
                 open_climb_button,
+                party_mode_button,
             ),
         );
     }
@@ -96,6 +100,12 @@ fn setup_buttons_panel(mut commands: Commands, handles: Res<UiAssets>) {
     let open_climb_button = commands
         .spawn((button("Open", handles.font.clone()), OpenClimbButton))
         .id();
+    let party_mode_button = commands
+        .spawn((
+            button("\u{E347}", handles.symbol_font.clone()),
+            PartyModeButton,
+        ))
+        .id();
 
     commands.entity(container).add_children(&[
         new_button,
@@ -104,6 +114,7 @@ fn setup_buttons_panel(mut commands: Commands, handles: Res<UiAssets>) {
         gen_new_button,
         publish_button,
         open_climb_button,
+        party_mode_button,
     ]);
 
     commands.entity(root).add_child(container);
@@ -237,5 +248,14 @@ fn open_climb_button(
         {
             warn!("Failed to open url: {:?}", err);
         }
+    }
+}
+
+fn party_mode_button(
+    query: Query<&Interaction, (With<PartyModeButton>, Changed<Interaction>)>,
+    mut party_mode: ResMut<PartyMode>,
+) {
+    if query.iter().any(|i| *i == Interaction::Pressed) {
+        party_mode.0 = !party_mode.0;
     }
 }

@@ -10,12 +10,13 @@ use pan_cam::PanCamPlugin;
 use placement_indicator::PlacementIndicatorPlugin;
 use ui::UiPlugin;
 
-use crate::board_connection::BoardConnectionPlugin;
+use crate::{board_connection::BoardConnectionPlugin, effects::EffectsPlugin};
 
 mod authoring;
 pub mod board_connection;
 mod clipboard;
 mod debug;
+mod effects;
 mod gen_api;
 mod human;
 mod kilter_board;
@@ -43,6 +44,7 @@ impl Plugin for AppPlugin {
             KilterBoardPlugin,
             UiPlugin,
             BoardConnectionPlugin,
+            EffectsPlugin,
         ));
 
         // Third-party Plugins

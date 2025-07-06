@@ -3281,6 +3281,7 @@ dependencies = [
  "gloo-events",
  "indexmap",
  "log",
+ "rand",
  "rusqlite",
  "serde",
  "serde_derive",
