@@ -107,6 +107,7 @@ fn update_search_results(
                     padding: theme::CONTAINER_PADDING,
                     ..default()
                 },
+                BorderRadius::all(theme::CONTAINER_BORDER_RADIUS),
                 BackgroundColor(theme::CONTAINER_BG.into()),
                 SearchResultItem(*climb_idx),
             ))

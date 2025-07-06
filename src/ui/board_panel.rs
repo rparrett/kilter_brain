@@ -187,6 +187,7 @@ fn nearby_boards(
                     padding: theme::CONTAINER_PADDING,
                     ..default()
                 },
+                BorderRadius::all(theme::CONTAINER_BORDER_RADIUS),
                 BackgroundColor(theme::CONTAINER_BG.into()),
                 children![(
                     Text::new(display_name),
