@@ -121,6 +121,7 @@ fn setup_info_panel(mut commands: Commands) {
                             ..default()
                         },
                         TextColor(theme::FONT_COLOR.into()),
+                        ClimbDraftText,
                     ));
                     parent.spawn((
                         Text::new("Listed:".to_string()),
