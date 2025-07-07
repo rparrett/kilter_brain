@@ -24,6 +24,21 @@ pub struct KilterData {
     pub placement_roles: HashMap<u32, PlacementRole>,
     pub climbs: IndexMap<String, Climb>,
     pub placement_id_to_led_position: HashMap<u32, u32>,
+    pub uuid_angle_to_stats: HashMap<(String, u32), Stats>,
+}
+
+#[expect(dead_code)]
+#[derive(Debug)]
+pub struct Stats {
+    climb_uuid: String,
+    angle: u32,
+    display_difficulty: f32,
+    benchmark_difficulty: f32,
+    ascensionist_count: u32,
+    difficulty_average: f32,
+    quality_average: f32,
+    fa_username: String,
+    fa_at: String,
 }
 
 impl KilterData {
@@ -193,6 +208,42 @@ impl KilterData {
             .flatten()
             .collect();
 
+        let mut stmt = conn
+            .prepare(
+                "SELECT
+                    climb_uuid,
+                    angle,
+                    display_difficulty,
+                    benchmark_difficulty,
+                    ascensionist_count,
+                    difficulty_average,
+                    quality_average,
+                    fa_username,
+                    fa_at
+                FROM climb_stats",
+            )
+            .unwrap();
+        let uuid_angle_to_stats = stmt
+            .query_map([], |row| {
+                Ok((
+                    (row.get(0)?, row.get(1)?),
+                    Stats {
+                        climb_uuid: row.get(0)?,
+                        angle: row.get(1)?,
+                        display_difficulty: row.get(2)?,
+                        benchmark_difficulty: row.get(3)?,
+                        ascensionist_count: row.get(4)?,
+                        difficulty_average: row.get(5)?,
+                        quality_average: row.get(6)?,
+                        fa_username: row.get(7)?,
+                        fa_at: row.get(8)?,
+                    },
+                ))
+            })
+            .unwrap()
+            .flatten()
+            .collect::<HashMap<_, _>>();
+
         Ok(Self {
             holes,
             placements,
@@ -200,6 +251,7 @@ impl KilterData {
             climbs,
             leds,
             placement_id_to_led_position,
+            uuid_angle_to_stats,
         })
     }
 
