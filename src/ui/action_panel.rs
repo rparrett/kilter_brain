@@ -161,17 +161,24 @@ fn gen_new_button(
     angle: Res<BoardAngle>,
 ) {
     if query.iter().any(|i| *i == Interaction::Pressed) {
-        let request = GenerateRequest {
+        let request_data = GenerateRequest {
             prompt: format!("a{}d20", angle.0),
             num: 10,
         };
 
-        ev_request.write(
-            HttpClient::new()
-                .post(format!("{}/generate", api_settings.host))
-                .json(&request)
-                .with_type::<GeneratedClimbs>(),
-        );
+        let request = match HttpClient::new()
+            .post(format!("{}/generate", api_settings.host))
+            .json(&request_data)
+            .try_with_type::<GeneratedClimbs>()
+        {
+            Ok(r) => r,
+            Err(e) => {
+                error!("Failed to build request: {e}");
+                return;
+            }
+        };
+
+        ev_request.write(request);
     }
 }
 
@@ -188,17 +195,24 @@ fn gen_fill_button(
             out
         });
 
-        let request = GenerateRequest {
+        let request_data = GenerateRequest {
             prompt: format!("a{}d20{}", angle.0, current_frames),
             num: 10,
         };
 
-        ev_request.write(
-            HttpClient::new()
-                .post(format!("{}/generate", api_settings.host))
-                .json(&request)
-                .with_type::<GeneratedClimbs>(),
-        );
+        let request = match HttpClient::new()
+            .post(format!("{}/generate", api_settings.host))
+            .json(&request_data)
+            .try_with_type::<GeneratedClimbs>()
+        {
+            Ok(r) => r,
+            Err(e) => {
+                error!("Failed to build request: {e}");
+                return;
+            }
+        };
+
+        ev_request.write(request);
     }
 }
 
@@ -224,12 +238,19 @@ fn publish_button(
         let mut new_climb = climb.clone();
         new_climb.frames = current_frames;
 
-        ev_request.write(
-            HttpClient::new()
-                .post(format!("{}/publish", api_settings.host))
-                .json(&new_climb)
-                .with_type::<GeneratedClimb>(),
-        );
+        let request = match HttpClient::new()
+            .post(format!("{}/publish", api_settings.host))
+            .json(&new_climb)
+            .try_with_type::<GeneratedClimb>()
+        {
+            Ok(r) => r,
+            Err(e) => {
+                error!("Failed to build request: {e}");
+                return;
+            }
+        };
+
+        ev_request.write(request);
     }
 }
 
