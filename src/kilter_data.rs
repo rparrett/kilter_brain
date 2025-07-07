@@ -35,9 +35,9 @@ pub struct Stats {
     angle: u32,
     display_difficulty: f32,
     benchmark_difficulty: Option<f32>,
-    ascensionist_count: u32,
+    pub ascensionist_count: u32,
     difficulty_average: f32,
-    quality_average: f32,
+    pub quality_average: f32,
     fa_username: String,
     fa_at: String,
 }
