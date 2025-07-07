@@ -162,8 +162,6 @@ fn on_paste(
     mut kilter: ResMut<KilterData>,
 ) {
     for event in events.read() {
-        let mut added = 0;
-
         let lines = event.0.split('\n');
         for (l, line) in lines.enumerate() {
             let line = line.trim();
@@ -197,11 +195,9 @@ fn on_paste(
                 },
             );
 
-            added += 1;
-        }
-
-        if added > 0 {
-            selected.0 = kilter.climbs.len() - added;
+            // TODO we need a filter mode that is just "show recently generated climbs," or
+            // "most recent (no filter)"
+            selected.0 = id.clone();
         }
     }
 }

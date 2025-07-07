@@ -25,6 +25,7 @@ pub struct KilterData {
     pub climbs: IndexMap<String, Climb>,
     pub placement_id_to_led_position: HashMap<u32, u32>,
     pub uuid_angle_to_stats: HashMap<(String, u32), Stats>,
+    pub difficulty_grades: HashMap<u32, DifficultyGrade>,
 }
 
 #[expect(dead_code)]
@@ -39,6 +40,13 @@ pub struct Stats {
     quality_average: f32,
     fa_username: String,
     fa_at: String,
+}
+
+pub struct DifficultyGrade {
+    pub difficulty: u32,
+    pub boulder_name: String,
+    pub route_name: String,
+    pub is_listed: bool,
 }
 
 impl KilterData {
@@ -244,6 +252,30 @@ impl KilterData {
             .flatten()
             .collect::<HashMap<_, _>>();
 
+        let mut stmt = conn
+            .prepare(
+                "SELECT
+                    difficulty, boulder_name, route_name, is_listed
+                FROM difficulty_grades",
+            )
+            .unwrap();
+
+        let difficulty_grades = stmt
+            .query_map([], |row| {
+                Ok((
+                    row.get(0)?,
+                    DifficultyGrade {
+                        difficulty: row.get(0)?,
+                        boulder_name: row.get(1)?,
+                        route_name: row.get(2)?,
+                        is_listed: row.get(3)?,
+                    },
+                ))
+            })
+            .unwrap()
+            .flatten()
+            .collect();
+
         Ok(Self {
             holes,
             placements,
@@ -252,6 +284,7 @@ impl KilterData {
             leds,
             placement_id_to_led_position,
             uuid_angle_to_stats,
+            difficulty_grades,
         })
     }
 
@@ -398,8 +431,24 @@ pub struct ClimbFilter {
     pub filter_min_difficulty: u32,
     pub filter_max_difficulty: u32,
 }
+impl Default for ClimbFilter {
+    fn default() -> Self {
+        Self {
+            filtered_climbs: Default::default(),
+            angle: Default::default(),
+            filter_min_difficulty: 20,
+            filter_max_difficulty: 20,
+        }
+    }
+}
 impl ClimbFilter {
-    fn update(&mut self, kilter_data: &KilterData) {
+    pub fn new(angle: u32, kilter_data: &KilterData) -> Self {
+        let mut cf = Self::default();
+        cf.angle = angle;
+        cf.update(&kilter_data);
+        cf
+    }
+    pub fn update(&mut self, kilter_data: &KilterData) {
         self.filtered_climbs.clear();
 
         for (uuid, _climb) in kilter_data.climbs.iter() {
@@ -421,6 +470,8 @@ impl ClimbFilter {
 
             self.filtered_climbs.insert(uuid.clone());
         }
+
+        info!("filtered climbs: {}", self.filtered_climbs.len());
     }
 }
 

@@ -3,12 +3,12 @@ use combine::EasyParser;
 
 use crate::{
     board_connection::WriteToBoard,
-    kilter_data::{placements_and_roles, KilterData},
+    kilter_data::{placements_and_roles, ClimbFilter, KilterData},
     placement_indicator::PlacementIndicator,
 };
 
-#[derive(Resource, Default)]
-pub struct SelectedClimb(pub usize);
+#[derive(Resource)]
+pub struct SelectedClimb(pub String);
 
 #[derive(Component)]
 pub struct Board;
@@ -17,7 +17,7 @@ pub struct Board;
 pub enum ChangeClimbEvent {
     Prev,
     Next,
-    SelectByIndex(usize),
+    SelectByUuid(String),
 }
 
 #[derive(Reflect, Resource)]
@@ -72,7 +72,6 @@ impl Plugin for KilterBoardPlugin {
         .add_systems(Startup, setup_scene)
         .add_event::<ChangeClimbEvent>()
         .init_resource::<BoardAngle>()
-        .init_resource::<SelectedClimb>()
         .init_resource::<KilterSettings>()
         .register_type::<KilterSettings>();
     }
@@ -138,28 +137,32 @@ fn prev_next_climb(keys: Res<ButtonInput<KeyCode>>, mut writer: EventWriter<Chan
 
 fn change_climb(
     mut selected: ResMut<SelectedClimb>,
-    kilter: Res<KilterData>,
+    filter: Res<ClimbFilter>,
     mut reader: EventReader<ChangeClimbEvent>,
 ) {
     for event in reader.read() {
         match event {
             ChangeClimbEvent::Prev => {
-                selected.0 = if selected.0 == 0 {
-                    kilter.climbs.len() - 1
+                let current = filter.filtered_climbs.get_index_of(&selected.0).unwrap();
+                let prev = if current == 0 {
+                    filter.filtered_climbs.len() - 1
                 } else {
-                    selected.0 - 1
+                    current - 1
                 };
+                selected.0 = filter.filtered_climbs.get_index(prev).unwrap().clone();
             }
             ChangeClimbEvent::Next => {
-                selected.0 = if selected.0 + 1 >= kilter.climbs.len() {
+                let current = filter.filtered_climbs.get_index_of(&selected.0).unwrap();
+
+                let next = if current + 1 >= filter.filtered_climbs.len() {
                     0
                 } else {
-                    selected.0 + 1
+                    current + 1
                 };
+
+                selected.0 = filter.filtered_climbs.get_index(next).unwrap().clone();
             }
-            ChangeClimbEvent::SelectByIndex(id) => {
-                selected.0 = *id;
-            }
+            ChangeClimbEvent::SelectByUuid(uuid) => selected.0 = uuid.clone(),
         }
     }
 }
@@ -181,14 +184,7 @@ fn show_climb(
         return;
     };
 
-    // Get selected or first climb
-    let Some(climb) = kilter
-        .climbs
-        .iter()
-        .nth(selected.0)
-        .or_else(|| kilter.climbs.iter().next())
-        .map(|(_, climb)| climb)
-    else {
+    let Some(climb) = kilter.climbs.get(&selected.0) else {
         return;
     };
 

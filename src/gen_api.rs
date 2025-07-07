@@ -69,9 +69,11 @@ fn handle_response(
                     ..default()
                 },
             );
-        }
 
-        selected.0 = kilter.climbs.len() - response.len();
+            // TODO we need a filter mode that is just "show recently generated climbs," or
+            // "most recent (no filter)"
+            selected.0 = generated_climb.uuid.clone();
+        }
     }
 }
 

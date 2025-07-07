@@ -150,7 +150,7 @@ fn new_button(
             },
         );
 
-        selected.0 = kilter.climbs.len() - 1;
+        selected.0 = id.clone();
     }
 }
 
@@ -230,8 +230,7 @@ fn publish_button(
             out
         });
 
-        // Get selected or first climb
-        let Some((_, climb)) = kilter.climbs.iter().nth(selected.0) else {
+        let Some(climb) = kilter.climbs.get(&selected.0) else {
             return;
         };
 
@@ -260,7 +259,7 @@ fn open_climb_button(
     kilter: Res<KilterData>,
 ) {
     if query.iter().any(|i| *i == Interaction::Pressed) {
-        let Some((_, climb)) = kilter.climbs.iter().nth(selected.0) else {
+        let Some(climb) = kilter.climbs.get(&selected.0) else {
             return;
         };
 

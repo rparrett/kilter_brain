@@ -160,13 +160,7 @@ fn update_selected_climb(
     climb_draft_text_query: Query<Entity, With<ClimbDraftText>>,
     climb_listed_text_query: Query<Entity, With<ClimbListedText>>,
 ) {
-    let Some(climb) = kilter
-        .climbs
-        .iter()
-        .nth(selected.0)
-        .or_else(|| kilter.climbs.iter().next())
-        .map(|(_, climb)| climb)
-    else {
+    let Some(climb) = kilter.climbs.get(&selected.0) else {
         return;
     };
 
