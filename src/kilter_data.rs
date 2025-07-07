@@ -445,8 +445,8 @@ impl Default for ClimbFilter {
         Self {
             filtered_climbs: Default::default(),
             angle: Default::default(),
-            filter_min_difficulty: 20,
-            filter_max_difficulty: 20,
+            filter_min_difficulty: 0,
+            filter_max_difficulty: 33,
             sort: Default::default(),
         }
     }
