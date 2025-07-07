@@ -1,3 +1,4 @@
+use bevy::math::FloatOrd;
 use bevy::platform::collections::HashMap;
 use combine::EasyParser;
 use indexmap::{IndexMap, IndexSet};
@@ -425,12 +426,19 @@ pub struct Led {
     pub position: u32,
 }
 
+#[derive(Default)]
+pub enum ClimbSort {
+    #[default]
+    Best,
+}
+
 #[derive(Resource)]
 pub struct ClimbFilter {
     pub filtered_climbs: IndexSet<String>,
     pub angle: u32,
     pub filter_min_difficulty: u32,
     pub filter_max_difficulty: u32,
+    pub sort: ClimbSort,
 }
 impl Default for ClimbFilter {
     fn default() -> Self {
@@ -439,6 +447,7 @@ impl Default for ClimbFilter {
             angle: Default::default(),
             filter_min_difficulty: 20,
             filter_max_difficulty: 20,
+            sort: Default::default(),
         }
     }
 }
@@ -471,7 +480,22 @@ impl ClimbFilter {
 
             self.filtered_climbs.insert(uuid.clone());
         }
+
+        self.filtered_climbs.sort_by_cached_key(|climb| {
+            let (rating, ascents) = kilter_data
+                .uuid_angle_to_stats
+                .get(&(climb.clone(), self.angle))
+                .map(|s| (s.quality_average, s.ascensionist_count))
+                .unwrap_or((0.0, 0));
+            // TODO global_avg
+            FloatOrd(-weighted_rating(rating, ascents, 10, 2.5))
+        });
     }
+}
+
+fn weighted_rating(avg_rating: f32, num_ratings: u32, min_ratings: u32, global_avg: f32) -> f32 {
+    let confidence = num_ratings as f32 / (num_ratings + min_ratings) as f32;
+    confidence * avg_rating + (1.0 - confidence) * global_avg
 }
 
 // TODO can we parse into a HashMap<u32, u32>?
