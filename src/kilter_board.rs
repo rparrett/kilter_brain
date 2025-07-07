@@ -143,24 +143,52 @@ fn change_climb(
     for event in reader.read() {
         match event {
             ChangeClimbEvent::Prev => {
-                let current = filter.filtered_climbs.get_index_of(&selected.0).unwrap();
-                let prev = if current == 0 {
+                if filter.filtered_climbs.is_empty() {
+                    continue;
+                }
+
+                let current_index = filter
+                    .filtered_climbs
+                    .get_index_of(&selected.0)
+                    .unwrap_or(0);
+
+                info!("Current index: {current_index}");
+
+                let prev_index = if current_index == 0 {
                     filter.filtered_climbs.len() - 1
                 } else {
-                    current - 1
+                    current_index - 1
                 };
-                selected.0 = filter.filtered_climbs.get_index(prev).unwrap().clone();
+
+                info!("Prev index: {prev_index}");
+
+                if let Some(prev_uuid) = filter.filtered_climbs.get_index(prev_index) {
+                    selected.0 = prev_uuid.clone();
+                }
             }
             ChangeClimbEvent::Next => {
-                let current = filter.filtered_climbs.get_index_of(&selected.0).unwrap();
+                if filter.filtered_climbs.is_empty() {
+                    continue;
+                }
 
-                let next = if current + 1 >= filter.filtered_climbs.len() {
+                let current_index = filter
+                    .filtered_climbs
+                    .get_index_of(&selected.0)
+                    .unwrap_or(0);
+
+                info!("Current index: {current_index}");
+
+                let next_index = if current_index + 1 >= filter.filtered_climbs.len() {
                     0
                 } else {
-                    current + 1
+                    current_index + 1
                 };
 
-                selected.0 = filter.filtered_climbs.get_index(next).unwrap().clone();
+                info!("Next index: {next_index}");
+
+                if let Some(next_uuid) = filter.filtered_climbs.get_index(next_index) {
+                    selected.0 = next_uuid.clone();
+                }
             }
             ChangeClimbEvent::SelectByUuid(uuid) => selected.0 = uuid.clone(),
         }

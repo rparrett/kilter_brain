@@ -34,7 +34,7 @@ pub struct Stats {
     climb_uuid: String,
     angle: u32,
     display_difficulty: f32,
-    benchmark_difficulty: f32,
+    benchmark_difficulty: Option<f32>,
     ascensionist_count: u32,
     difficulty_average: f32,
     quality_average: f32,
@@ -231,6 +231,7 @@ impl KilterData {
                 FROM climb_stats",
             )
             .unwrap();
+
         let uuid_angle_to_stats = stmt
             .query_map([], |row| {
                 Ok((
@@ -470,8 +471,6 @@ impl ClimbFilter {
 
             self.filtered_climbs.insert(uuid.clone());
         }
-
-        info!("filtered climbs: {}", self.filtered_climbs.len());
     }
 }
 
