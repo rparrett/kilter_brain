@@ -1,6 +1,6 @@
 use bevy::platform::collections::HashMap;
 use combine::EasyParser;
-use indexmap::IndexMap;
+use indexmap::{IndexMap, IndexSet};
 use serde_derive::{Deserialize, Serialize};
 use serde_json::Value;
 use std::io::Read;
@@ -389,6 +389,39 @@ pub struct Led {
     pub product_size_id: u32,
     pub hole_id: u32,
     pub position: u32,
+}
+
+#[derive(Resource)]
+pub struct ClimbFilter {
+    pub filtered_climbs: IndexSet<String>,
+    pub angle: u32,
+    pub filter_min_difficulty: u32,
+    pub filter_max_difficulty: u32,
+}
+impl ClimbFilter {
+    fn update(&mut self, kilter_data: &KilterData) {
+        self.filtered_climbs.clear();
+
+        for (uuid, _climb) in kilter_data.climbs.iter() {
+            // TODO how can we avoid the `uuid` allocation here?
+            // TODO we need to be able to optionally skip difficulty filtering
+            // to show "open projects"
+            let Some(stats) = kilter_data
+                .uuid_angle_to_stats
+                .get(&(uuid.clone(), self.angle))
+            else {
+                continue;
+            };
+
+            if stats.display_difficulty < self.filter_min_difficulty as f32
+                || stats.display_difficulty > self.filter_max_difficulty as f32
+            {
+                continue;
+            }
+
+            self.filtered_climbs.insert(uuid.clone());
+        }
+    }
 }
 
 // TODO can we parse into a HashMap<u32, u32>?
