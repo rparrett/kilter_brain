@@ -1,8 +1,8 @@
-use std::path::Path;
-use std::{env, fs};
+use std::env;
 
 use bevy::prelude::*;
 use bevy::window::WindowMode;
+use bevy::winit::WinitSettings;
 use ble::BlePlugin;
 use kilter_brain::kilter_data::KilterData;
 use kilter_brain::AppPlugin;
@@ -45,5 +45,6 @@ fn main() {
             AppPlugin,
             BlePlugin,
         ))
+        .insert_resource(WinitSettings::mobile())
         .run();
 }
