@@ -42,7 +42,7 @@ fn setup_nav_panel(mut commands: Commands, handles: Res<UiAssets>) {
         .id();
 
     let next_button = commands
-        .spawn((button("\u{E04D}", handles.symbol_font.clone()), PrevButton))
+        .spawn((button("\u{E04D}", handles.symbol_font.clone()), NextButton))
         .id();
 
     commands
