@@ -1,5 +1,6 @@
 use std::env;
 
+use bevy::log::LogPlugin;
 use bevy::prelude::*;
 use bevy::window::WindowMode;
 use bevy::winit::WinitSettings;
@@ -33,15 +34,20 @@ fn main() {
     App::new()
         .insert_resource(kd)
         .add_plugins((
-            DefaultPlugins.set(WindowPlugin {
-                primary_window: Some(Window {
-                    resizable: false,
-                    mode: WindowMode::BorderlessFullscreen(MonitorSelection::Current),
-                    recognize_pinch_gesture: true,
+            DefaultPlugins
+                .set(WindowPlugin {
+                    primary_window: Some(Window {
+                        resizable: false,
+                        mode: WindowMode::BorderlessFullscreen(MonitorSelection::Current),
+                        recognize_pinch_gesture: true,
+                        ..default()
+                    }),
+                    ..default()
+                })
+                .set(LogPlugin {
+                    filter: "kilter_brain=debug".into(),
                     ..default()
                 }),
-                ..default()
-            }),
             AppPlugin,
             BlePlugin,
         ))

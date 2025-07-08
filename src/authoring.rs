@@ -1,43 +1,44 @@
 use bevy::{
     input::gestures::PinchGesture,
     picking::events::{Click, DragEnd, Pointer},
+    platform::collections::HashMap,
     prelude::*,
 };
 
+use combine::EasyParser;
 use uuid::Uuid;
-
-use std::fmt::Write;
 
 use crate::{
     clipboard::PasteEvent,
-    kilter_board::{Board, KilterSettings, SelectedClimb},
-    kilter_data::{parse_placements_and_roles, Climb, ClimbFilter, KilterData},
-    placement_indicator::PlacementIndicator,
+    kilter_board::{Board, ChangeClimbEvent, KilterSettings, SelectedClimb},
+    kilter_data::{
+        parse_placements_and_roles, placements_and_roles, Climb, ClimbFilter, KilterData,
+    },
 };
 
 pub struct AuthoringPlugin;
 
 impl Plugin for AuthoringPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (cycle, log_frames, on_paste));
+        app.add_systems(Update, (cycle, on_paste));
     }
 }
 
 fn cycle(
-    mut commands: Commands,
-    mut indicator_query: Query<(Entity, &mut PlacementIndicator)>,
-    board_query: Query<(Entity, &GlobalTransform), With<Board>>,
+    board_query: Query<&GlobalTransform, With<Board>>,
     mut click_events: EventReader<Pointer<Click>>,
     mut drag_end: EventReader<Pointer<DragEnd>>,
     mut pinch_events: EventReader<PinchGesture>,
-    kilter: Res<KilterData>,
+    mut kilter: ResMut<KilterData>,
     settings: Res<KilterSettings>,
+    selected: Res<SelectedClimb>,
+    mut events: EventWriter<ChangeClimbEvent>,
 ) {
     let pinching = pinch_events.read().len() > 0;
     let drag_dist = drag_end.read().map(|e| e.event.distance).sum::<Vec2>();
 
     for event in click_events.read() {
-        let Ok((board_entity, board)) = board_query.get(event.target) else {
+        let Ok(board) = board_query.get(event.target) else {
             continue;
         };
 
@@ -48,6 +49,19 @@ fn cycle(
         if pinching {
             continue;
         }
+
+        let Some(climb) = kilter.climbs.get(&selected.0) else {
+            continue;
+        };
+
+        let placements = placements_and_roles()
+            .easy_parse(climb.frames.as_str())
+            .map(|(pr, _err)| pr)
+            .unwrap_or_else(|_| Vec::new());
+
+        let mut placements = HashMap::<u32, u32>::from_iter(placements);
+
+        // Find closest placement to cursor hit position
 
         let mut min: Option<(u32, Vec2, f32)> = None;
 
@@ -75,22 +89,15 @@ fn cycle(
             }
         }
 
-        let Some((placement_id, _, _d_squared)) = min else {
+        let Some((closest_placement_id, _, _d_squared)) = min else {
             continue;
         };
-
-        // TODO consider monitoring the selected climb's frame data directly
-        // and updating the indicators in a separate system.
-
-        let search = indicator_query
-            .iter_mut()
-            .find(|(_, p)| p.placement_id == placement_id);
 
         // Determine the order of roles to cycle through.
 
         let first_role_id = kilter
             .placements
-            .get(&placement_id)
+            .get(&closest_placement_id)
             .and_then(|p| p.default_placement_role_id)
             .unwrap_or(13);
 
@@ -116,48 +123,37 @@ fn cycle(
             }
         }
 
-        if let Some((entity, mut placement)) = search {
-            let current = roles
-                .iter()
-                .position(|r| *r == Some(placement.role_id))
-                .unwrap();
-            let next = roles.iter().cycle().nth(current + 1).unwrap();
+        // Update placement in hashmap
 
-            if let Some(next) = next {
-                placement.role_id = *next;
-            } else {
-                commands.entity(entity).despawn();
+        let entry = placements
+            .entry(closest_placement_id)
+            .or_insert(roles.first().unwrap().unwrap());
+        let current = *entry;
+        let current_ind = roles.iter().position(|r| *r == Some(current)).unwrap();
+
+        match roles.iter().cycle().nth(current_ind + 1).unwrap() {
+            Some(next) => *entry = *next,
+            None => {
+                placements.remove(&closest_placement_id);
             }
-        } else {
-            // TODO if there are already two start holds on the board,
-            // don't use that role even if it's the default.
-
-            let indicator = commands
-                .spawn(PlacementIndicator {
-                    placement_id,
-                    role_id: roles.first().unwrap().unwrap(),
-                })
-                .id();
-            commands.entity(board_entity).add_child(indicator);
         }
+
+        // Update frames
+
+        let frames = placements.iter().fold(String::new(), |mut acc, (k, v)| {
+            acc.push_str(&format!("p{}r{}", k, v));
+            acc
+        });
+
+        let Some(climb) = kilter.climbs.get_mut(&selected.0) else {
+            continue;
+        };
+
+        climb.frames = frames;
+
+        // Cause board to be updated, and new frames to be sent over bluetooth
+        events.write(ChangeClimbEvent::SelectByUuid(climb.uuid.clone()));
     }
-}
-
-fn log_frames(
-    query: Query<&PlacementIndicator>,
-    changed_query: Query<(), Changed<PlacementIndicator>>,
-) {
-    // TODO this iterates the entire query. Use an event or something.
-    if changed_query.is_empty() {
-        return;
-    }
-
-    let out: String = query.iter().fold(String::new(), |mut out, ind| {
-        let _ = write!(out, "{ind}");
-        out
-    });
-
-    info!("{out}");
 }
 
 fn on_paste(

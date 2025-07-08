@@ -152,15 +152,13 @@ fn change_climb(
                     .get_index_of(&selected.0)
                     .unwrap_or(0);
 
-                info!("Current index: {current_index}");
-
                 let prev_index = if current_index == 0 {
                     filter.filtered_climbs.len() - 1
                 } else {
                     current_index - 1
                 };
 
-                info!("Prev index: {prev_index}");
+                debug!("Navigating. {current_index} -> {prev_index}");
 
                 if let Some(prev_uuid) = filter.filtered_climbs.get_index(prev_index) {
                     selected.0 = prev_uuid.clone();
@@ -176,15 +174,13 @@ fn change_climb(
                     .get_index_of(&selected.0)
                     .unwrap_or(0);
 
-                info!("Current index: {current_index}");
-
                 let next_index = if current_index + 1 >= filter.filtered_climbs.len() {
                     0
                 } else {
                     current_index + 1
                 };
 
-                info!("Next index: {next_index}");
+                debug!("Navigating. {current_index} -> {next_index}");
 
                 if let Some(next_uuid) = filter.filtered_climbs.get_index(next_index) {
                     selected.0 = next_uuid.clone();
@@ -234,6 +230,8 @@ fn show_climb(
 
         commands.entity(board).add_child(indicator);
     }
+
+    debug!("Showing frames: {}", climb.frames);
 
     events.write(WriteToBoard::from_positions_and_roles(&placements, &kilter));
 }
