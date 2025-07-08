@@ -5,8 +5,8 @@ use bevy::prelude::*;
 use bevy::window::WindowMode;
 use bevy::winit::WinitSettings;
 use ble::BlePlugin;
-use kilter_brain::kilter_data::KilterData;
 use kilter_brain::AppPlugin;
+use kilter_brain::kilter_data::KilterData;
 
 mod ble;
 
