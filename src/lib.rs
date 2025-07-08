@@ -2,6 +2,7 @@ use authoring::AuthoringPlugin;
 use bevy::prelude::*;
 use bevy_simple_text_input::TextInputPlugin;
 use clipboard::ClipboardPlugin;
+#[cfg(feature = "debug")]
 use debug::DebugPlugin;
 use gen_api::GenApiPlugin;
 use human::HumanPlugin;
@@ -18,6 +19,7 @@ use crate::{
 mod authoring;
 pub mod board_connection;
 mod clipboard;
+#[cfg(feature = "debug")]
 mod debug;
 mod effects;
 mod gen_api;
@@ -45,6 +47,7 @@ impl Plugin for AppPlugin {
             ClipboardPlugin,
             PlacementIndicatorPlugin,
             PanCamPlugin,
+            #[cfg(feature = "debug")]
             DebugPlugin,
             KilterBoardPlugin,
             UiPlugin,

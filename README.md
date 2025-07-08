@@ -22,7 +22,6 @@ AI route-setting via [`kilter_brain_gen`](https://github.com/rparrett/kilter_bra
 - Make the "dude for scale" a ragdoll that can be dragged onto the board
 - BLE: we should determine the API level of the board and use the proper encoding scheme
 - Pare down Bevy features -- we're not going to need gamepad support
-- Make `bevy_inspector_egui` optional
 
 ## To get a recent APK
 
