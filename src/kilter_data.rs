@@ -1,5 +1,5 @@
 use bevy::math::FloatOrd;
-use bevy::platform::collections::HashMap;
+use bevy::platform::collections::{HashMap, HashSet};
 use combine::EasyParser;
 use indexmap::{IndexMap, IndexSet};
 use serde_derive::{Deserialize, Serialize};
@@ -434,7 +434,11 @@ pub enum ClimbSort {
 
 #[derive(Resource)]
 pub struct ClimbFilter {
+    /// The set of climb UUIDs matching the current filters.
+    /// TODO this should be made private.
     pub filtered_climbs: IndexSet<String>,
+    /// If not empty, only show climbs from this set instead of doing normal filtering.
+    pub override_climbs: HashSet<String>,
     pub angle: u32,
     pub filter_min_difficulty: u32,
     pub filter_max_difficulty: u32,
@@ -444,6 +448,7 @@ impl Default for ClimbFilter {
     fn default() -> Self {
         Self {
             filtered_climbs: Default::default(),
+            override_climbs: Default::default(),
             angle: Default::default(),
             filter_min_difficulty: 0,
             filter_max_difficulty: 33,
@@ -462,6 +467,14 @@ impl ClimbFilter {
         self.filtered_climbs.clear();
 
         for (uuid, _climb) in kilter_data.climbs.iter() {
+            if !self.override_climbs.is_empty() {
+                if self.override_climbs.contains(uuid) {
+                    self.filtered_climbs.insert(uuid.clone());
+                }
+
+                continue;
+            }
+
             // TODO how can we avoid the `uuid` allocation here?
             // TODO we need to be able to optionally skip difficulty filtering
             // to show "open projects"

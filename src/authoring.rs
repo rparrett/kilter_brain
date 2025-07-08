@@ -11,7 +11,7 @@ use std::fmt::Write;
 use crate::{
     clipboard::PasteEvent,
     kilter_board::{Board, KilterSettings, SelectedClimb},
-    kilter_data::{parse_placements_and_roles, Climb, KilterData},
+    kilter_data::{parse_placements_and_roles, Climb, ClimbFilter, KilterData},
     placement_indicator::PlacementIndicator,
 };
 
@@ -160,8 +160,11 @@ fn on_paste(
     mut events: EventReader<PasteEvent>,
     mut selected: ResMut<SelectedClimb>,
     mut kilter: ResMut<KilterData>,
+    mut filter: ResMut<ClimbFilter>,
 ) {
     for event in events.read() {
+        let mut to_add = vec![];
+
         let lines = event.0.split('\n');
         for (l, line) in lines.enumerate() {
             let line = line.trim();
@@ -184,20 +187,26 @@ fn on_paste(
 
             let id = Uuid::new_v4().simple().to_string();
 
-            kilter.climbs.insert(
-                id.clone(),
-                Climb {
-                    uuid: id.clone(),
-                    setter_username: "User".to_string(),
-                    name: name.to_string(),
-                    frames: frames.to_string(),
-                    ..default()
-                },
-            );
+            to_add.push(Climb {
+                uuid: id.clone(),
+                setter_username: "User".to_string(),
+                name: name.to_string(),
+                frames: frames.to_string(),
+                ..default()
+            });
 
             // TODO we need a filter mode that is just "show recently generated climbs," or
             // "most recent (no filter)"
             selected.0 = id.clone();
+        }
+
+        if !to_add.is_empty() {
+            filter.override_climbs.clear();
+            for climb in to_add {
+                filter.override_climbs.insert(climb.uuid.clone());
+                kilter.climbs.insert(climb.uuid.clone(), climb);
+            }
+            filter.update(&kilter);
         }
     }
 }
