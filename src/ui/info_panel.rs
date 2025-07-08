@@ -1,6 +1,10 @@
 use bevy::prelude::*;
 
-use crate::{kilter_board::SelectedClimb, kilter_data::KilterData};
+use crate::{
+    kilter_board::{BoardAngle, SelectedClimb},
+    kilter_data::KilterData,
+    ui::UiAssets,
+};
 
 use super::theme;
 
@@ -27,12 +31,17 @@ struct ClimbUuidText;
 struct ClimbDraftText;
 #[derive(Component)]
 struct ClimbListedText;
+
+#[derive(Component)]
+struct ClimbRatingText;
+#[derive(Component)]
+struct ClimbAscentsText;
 #[derive(Component)]
 struct ClimbInfo;
 #[derive(Component)]
 struct ClimbMoreInfo;
 
-fn setup_info_panel(mut commands: Commands) {
+fn setup_info_panel(mut commands: Commands, handles: Res<UiAssets>) {
     let root = commands
         .spawn(Node {
             flex_direction: FlexDirection::Row,
@@ -57,32 +66,97 @@ fn setup_info_panel(mut commands: Commands) {
             parent
                 .spawn((
                     Node {
-                        column_gap: Val::Px(5.),
+                        row_gap: Val::Px(5.),
+                        flex_direction: FlexDirection::Column,
+                        align_items: AlignItems::Center,
                         ..default()
                     },
                     ClimbInfo,
                     Interaction::None,
                 ))
                 .with_children(|parent| {
-                    parent.spawn((
-                        Text::new("Name".to_string()),
-                        TextFont {
-                            font_size: theme::FONT_SIZE,
+                    parent
+                        .spawn(Node {
+                            column_gap: Val::Px(5.),
                             ..default()
-                        },
-                        TextColor(theme::FONT_COLOR_EMPHASIS.into()),
-                        ClimbNameText,
-                    ));
+                        })
+                        .with_children(|parent| {
+                            parent.spawn((
+                                Text::new("Name".to_string()),
+                                TextFont {
+                                    font_size: theme::FONT_SIZE,
+                                    ..default()
+                                },
+                                TextColor(theme::FONT_COLOR_EMPHASIS.into()),
+                                ClimbNameText,
+                            ));
 
-                    parent.spawn((
-                        Text::new("by Author".to_string()),
-                        TextFont {
-                            font_size: theme::FONT_SIZE,
+                            parent.spawn((
+                                Text::new("by".to_string()),
+                                TextFont {
+                                    font_size: theme::FONT_SIZE,
+                                    ..default()
+                                },
+                                TextColor(theme::FONT_COLOR_MUTED.into()),
+                            ));
+
+                            parent.spawn((
+                                Text::new("Author".to_string()),
+                                TextFont {
+                                    font_size: theme::FONT_SIZE,
+                                    ..default()
+                                },
+                                TextColor(theme::FONT_COLOR.into()),
+                                ClimbAuthorText,
+                            ));
+                        });
+                    parent
+                        .spawn(Node {
+                            column_gap: Val::Px(5.),
+                            align_items: AlignItems::Center,
                             ..default()
-                        },
-                        TextColor(theme::FONT_COLOR_MUTED.into()),
-                        ClimbAuthorText,
-                    ));
+                        })
+                        .with_children(|parent| {
+                            parent.spawn((
+                                Text::new("3.0".to_string()),
+                                TextFont {
+                                    font_size: theme::FONT_SIZE,
+                                    ..default()
+                                },
+                                TextColor(theme::FONT_COLOR_MUTED.into()),
+                                ClimbRatingText,
+                            ));
+
+                            parent.spawn((
+                                Text::new("\u{E17A}"),
+                                TextFont {
+                                    font_size: theme::FONT_SIZE_SM,
+                                    font: handles.symbol_font.clone(),
+                                    ..default()
+                                },
+                                TextColor(theme::FONT_COLOR_EMPHASIS.into()),
+                            ));
+
+                            parent.spawn((
+                                Text::new("123".to_string()),
+                                TextFont {
+                                    font_size: theme::FONT_SIZE,
+                                    ..default()
+                                },
+                                TextColor(theme::FONT_COLOR_MUTED.into()),
+                                ClimbAscentsText,
+                            ));
+
+                            parent.spawn((
+                                Text::new("\u{E1A4}"),
+                                TextFont {
+                                    font_size: theme::FONT_SIZE_SM,
+                                    font: handles.symbol_font.clone(),
+                                    ..default()
+                                },
+                                TextColor(theme::FONT_COLOR.into()),
+                            ));
+                        });
                 });
 
             parent
@@ -91,6 +165,7 @@ fn setup_info_panel(mut commands: Commands) {
                         flex_direction: FlexDirection::Column,
                         row_gap: Val::Px(3.),
                         display: Display::None,
+                        margin: UiRect::top(Val::Px(5.0)),
                         ..default()
                     },
                     ClimbMoreInfo,
@@ -151,6 +226,7 @@ fn setup_info_panel(mut commands: Commands) {
 fn update_selected_climb(
     selected: Res<SelectedClimb>,
     kilter: Res<KilterData>,
+    angle: Res<BoardAngle>,
     mut text_query: Query<&mut Text>,
     climb_name_text_query: Query<Entity, With<ClimbNameText>>,
     climb_author_text_query: Query<Entity, With<ClimbAuthorText>>,
@@ -159,14 +235,10 @@ fn update_selected_climb(
     climb_uuid_text_query: Query<Entity, With<ClimbUuidText>>,
     climb_draft_text_query: Query<Entity, With<ClimbDraftText>>,
     climb_listed_text_query: Query<Entity, With<ClimbListedText>>,
+    climb_rating_text_query: Query<Entity, With<ClimbRatingText>>,
+    climb_ascents_text_query: Query<Entity, With<ClimbAscentsText>>,
 ) {
-    let Some(climb) = kilter
-        .climbs
-        .iter()
-        .nth(selected.0)
-        .or_else(|| kilter.climbs.iter().next())
-        .map(|(_, climb)| climb)
-    else {
+    let Some(climb) = kilter.climbs.get(&selected.0) else {
         return;
     };
 
@@ -184,9 +256,7 @@ fn update_selected_climb(
     let Ok(mut author_text) = text_query.get_mut(author_entity) else {
         return;
     };
-    author_text
-        .0
-        .clone_from(&format!("by {}", &climb.setter_username));
+    author_text.0.clone_from(&climb.setter_username);
 
     let Ok(angle_entity) = climb_angle_text_query.single() else {
         return;
@@ -240,6 +310,38 @@ fn update_selected_climb(
     listed_text
         .0
         .clone_from(&format!("Listed: {:?}", climb.is_listed));
+
+    let Ok(rating_entity) = climb_rating_text_query.single() else {
+        return;
+    };
+    let Ok(mut rating_text) = text_query.get_mut(rating_entity) else {
+        return;
+    };
+
+    let stats = kilter
+        .uuid_angle_to_stats
+        .get(&(selected.0.clone(), angle.0));
+
+    let rating = match stats {
+        Some(s) => format!("{:.1}", s.quality_average),
+        None => "?".to_string(),
+    };
+
+    rating_text.0.clone_from(&rating);
+
+    let Ok(ascents_entity) = climb_ascents_text_query.single() else {
+        return;
+    };
+    let Ok(mut ascents_text) = text_query.get_mut(ascents_entity) else {
+        return;
+    };
+
+    let ascents = match stats {
+        Some(s) => format!("{}", s.ascensionist_count),
+        None => "?".to_string(),
+    };
+
+    ascents_text.0.clone_from(&ascents);
 }
 
 fn toggle_more_info(

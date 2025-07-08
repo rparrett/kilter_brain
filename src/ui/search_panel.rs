@@ -11,7 +11,7 @@ struct SearchField;
 #[derive(Component)]
 struct SearchResultsPanel;
 #[derive(Component)]
-struct SearchResultItem(usize);
+struct SearchResultItem(String);
 #[derive(Component)]
 struct SearchPanel;
 
@@ -93,12 +93,13 @@ fn update_search_results(
     // Despawn existing search result entities
     commands.entity(panel_entity).despawn_related::<Children>();
 
+    // TODO probably should search filtered climbs, not all climbs
     let results = kilter.search_by_name(&search_text.0);
     if results.is_empty() {
         return;
     }
 
-    for (climb_idx, climb) in results.iter().take(10) {
+    for (_climb_idx, climb) in results.iter().take(10) {
         let result = commands
             .spawn((
                 Button,
@@ -109,11 +110,11 @@ fn update_search_results(
                 },
                 BorderRadius::all(theme::CONTAINER_BORDER_RADIUS),
                 BackgroundColor(theme::CONTAINER_BG.into()),
-                SearchResultItem(*climb_idx),
+                SearchResultItem(climb.uuid.clone()),
             ))
             .with_children(|parent| {
                 parent.spawn((
-                    Text::new(format!("{}: {}", climb_idx, climb.name)),
+                    Text::new(&climb.name),
                     TextFont {
                         font_size: theme::FONT_SIZE_SM,
                         ..default()
@@ -133,7 +134,7 @@ fn handle_search_result_click(
 ) {
     for (interaction, item) in &query {
         if *interaction == Interaction::Pressed {
-            writer.write(ChangeClimbEvent::SelectByIndex(item.0));
+            writer.write(ChangeClimbEvent::SelectByUuid(item.0.clone()));
         }
     }
 }

@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use crate::{
     board_connection::{BoardConnection, Connect, Disconnect, NearbyBoards, StartScan, StopScan},
     kilter_board::BoardAngle,
+    kilter_data::{ClimbFilter, KilterData},
     ui::{button::button, UiAssets},
 };
 
@@ -87,9 +88,14 @@ fn setup_nav_panel(mut commands: Commands, handles: Res<UiAssets>) {
 fn angle_button(
     query: Query<&Interaction, (With<AngleButton>, Changed<Interaction>)>,
     mut angle: ResMut<BoardAngle>,
+    mut filter: ResMut<ClimbFilter>,
+    data: Res<KilterData>,
 ) {
     if query.iter().any(|i| *i == Interaction::Pressed) {
         *angle = angle.next();
+
+        filter.angle = angle.0;
+        filter.update(&data);
     }
 }
 

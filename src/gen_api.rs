@@ -4,7 +4,7 @@ use serde_derive::Deserialize;
 
 use crate::{
     kilter_board::SelectedClimb,
-    kilter_data::{Climb, KilterData},
+    kilter_data::{Climb, ClimbFilter, KilterData},
 };
 
 pub struct GenApiPlugin;
@@ -54,8 +54,10 @@ fn handle_response(
     mut ev_response: EventReader<TypedResponse<GeneratedClimbs>>,
     mut kilter: ResMut<KilterData>,
     mut selected: ResMut<SelectedClimb>,
+    mut filter: ResMut<ClimbFilter>,
 ) {
     for response in ev_response.read() {
+        filter.override_climbs.clear();
         for generated_climb in &**response {
             kilter.climbs.insert(
                 generated_climb.uuid.clone(),
@@ -69,9 +71,11 @@ fn handle_response(
                     ..default()
                 },
             );
-        }
 
-        selected.0 = kilter.climbs.len() - response.len();
+            selected.0 = generated_climb.uuid.clone();
+            filter.override_climbs.insert(generated_climb.uuid.clone());
+        }
+        filter.update(&kilter);
     }
 }
 

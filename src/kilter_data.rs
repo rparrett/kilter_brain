@@ -1,6 +1,7 @@
-use bevy::platform::collections::HashMap;
+use bevy::math::FloatOrd;
+use bevy::platform::collections::{HashMap, HashSet};
 use combine::EasyParser;
-use indexmap::IndexMap;
+use indexmap::{IndexMap, IndexSet};
 use serde_derive::{Deserialize, Serialize};
 use serde_json::Value;
 use std::io::Read;
@@ -24,6 +25,29 @@ pub struct KilterData {
     pub placement_roles: HashMap<u32, PlacementRole>,
     pub climbs: IndexMap<String, Climb>,
     pub placement_id_to_led_position: HashMap<u32, u32>,
+    pub uuid_angle_to_stats: HashMap<(String, u32), Stats>,
+    pub difficulty_grades: HashMap<u32, DifficultyGrade>,
+}
+
+#[expect(dead_code)]
+#[derive(Debug)]
+pub struct Stats {
+    climb_uuid: String,
+    angle: u32,
+    display_difficulty: f32,
+    benchmark_difficulty: Option<f32>,
+    pub ascensionist_count: u32,
+    difficulty_average: f32,
+    pub quality_average: f32,
+    fa_username: String,
+    fa_at: String,
+}
+
+pub struct DifficultyGrade {
+    pub difficulty: u32,
+    pub boulder_name: String,
+    pub route_name: String,
+    pub is_listed: bool,
 }
 
 impl KilterData {
@@ -193,6 +217,67 @@ impl KilterData {
             .flatten()
             .collect();
 
+        let mut stmt = conn
+            .prepare(
+                "SELECT
+                    climb_uuid,
+                    angle,
+                    display_difficulty,
+                    benchmark_difficulty,
+                    ascensionist_count,
+                    difficulty_average,
+                    quality_average,
+                    fa_username,
+                    fa_at
+                FROM climb_stats",
+            )
+            .unwrap();
+
+        let uuid_angle_to_stats = stmt
+            .query_map([], |row| {
+                Ok((
+                    (row.get(0)?, row.get(1)?),
+                    Stats {
+                        climb_uuid: row.get(0)?,
+                        angle: row.get(1)?,
+                        display_difficulty: row.get(2)?,
+                        benchmark_difficulty: row.get(3)?,
+                        ascensionist_count: row.get(4)?,
+                        difficulty_average: row.get(5)?,
+                        quality_average: row.get(6)?,
+                        fa_username: row.get(7)?,
+                        fa_at: row.get(8)?,
+                    },
+                ))
+            })
+            .unwrap()
+            .flatten()
+            .collect::<HashMap<_, _>>();
+
+        let mut stmt = conn
+            .prepare(
+                "SELECT
+                    difficulty, boulder_name, route_name, is_listed
+                FROM difficulty_grades",
+            )
+            .unwrap();
+
+        let difficulty_grades = stmt
+            .query_map([], |row| {
+                Ok((
+                    row.get(0)?,
+                    DifficultyGrade {
+                        difficulty: row.get(0)?,
+                        boulder_name: row.get(1)?,
+                        route_name: row.get(2)?,
+                        is_listed: row.get(3)?,
+                    },
+                ))
+            })
+            .unwrap()
+            .flatten()
+            .collect();
+
         Ok(Self {
             holes,
             placements,
@@ -200,6 +285,8 @@ impl KilterData {
             climbs,
             leds,
             placement_id_to_led_position,
+            uuid_angle_to_stats,
+            difficulty_grades,
         })
     }
 
@@ -339,7 +426,98 @@ pub struct Led {
     pub position: u32,
 }
 
+#[derive(Default)]
+pub enum ClimbSort {
+    #[default]
+    Best,
+}
+
+#[derive(Resource)]
+pub struct ClimbFilter {
+    /// The set of climb UUIDs matching the current filters.
+    /// TODO this should be made private.
+    pub filtered_climbs: IndexSet<String>,
+    /// If not empty, only show climbs from this set instead of doing normal filtering.
+    pub override_climbs: HashSet<String>,
+    pub angle: u32,
+    pub filter_min_difficulty: u32,
+    pub filter_max_difficulty: u32,
+    pub sort: ClimbSort,
+}
+impl Default for ClimbFilter {
+    fn default() -> Self {
+        Self {
+            filtered_climbs: Default::default(),
+            override_climbs: Default::default(),
+            angle: Default::default(),
+            filter_min_difficulty: 0,
+            filter_max_difficulty: 33,
+            sort: Default::default(),
+        }
+    }
+}
+impl ClimbFilter {
+    pub fn new(angle: u32, kilter_data: &KilterData) -> Self {
+        let mut cf = Self {
+            angle,
+            ..Default::default()
+        };
+
+        cf.update(kilter_data);
+
+        cf
+    }
+    pub fn update(&mut self, kilter_data: &KilterData) {
+        self.filtered_climbs.clear();
+
+        for (uuid, _climb) in kilter_data.climbs.iter() {
+            if !self.override_climbs.is_empty() {
+                if self.override_climbs.contains(uuid) {
+                    self.filtered_climbs.insert(uuid.clone());
+                }
+
+                continue;
+            }
+
+            // TODO how can we avoid the `uuid` allocation here?
+            // TODO we need to be able to optionally skip difficulty filtering
+            // to show "open projects"
+            let Some(stats) = kilter_data
+                .uuid_angle_to_stats
+                .get(&(uuid.clone(), self.angle))
+            else {
+                continue;
+            };
+
+            if stats.display_difficulty < self.filter_min_difficulty as f32
+                || stats.display_difficulty > self.filter_max_difficulty as f32
+            {
+                continue;
+            }
+
+            self.filtered_climbs.insert(uuid.clone());
+        }
+
+        self.filtered_climbs.sort_by_cached_key(|climb| {
+            let (rating, ascents) = kilter_data
+                .uuid_angle_to_stats
+                .get(&(climb.clone(), self.angle))
+                .map(|s| (s.quality_average, s.ascensionist_count))
+                .unwrap_or((0.0, 0));
+            // TODO global_avg
+            FloatOrd(-weighted_rating(rating, ascents, 10, 2.5))
+        });
+    }
+}
+
+fn weighted_rating(avg_rating: f32, num_ratings: u32, min_ratings: u32, global_avg: f32) -> f32 {
+    let confidence = num_ratings as f32 / (num_ratings + min_ratings) as f32;
+    confidence * avg_rating + (1.0 - confidence) * global_avg
+}
+
 // TODO can we parse into a HashMap<u32, u32>?
+// TODO this is probably too much unjustified complexity. The format is simple enough
+// that we don't really need fancy parse errors.
 pub fn placements_and_roles<'a, I>() -> impl Parser<I, Output = Vec<(u32, u32)>>
 where
     I: RangeStream<Token = char, Range = &'a str>,
