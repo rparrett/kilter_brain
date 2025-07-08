@@ -3,8 +3,8 @@
     "climbs": [
       {
         "uuid": "cfb9836092ef4e2086184430f2ad2424",
-        "name": "Test",
-        "description": "No matching",
+        "name": "Easy Mode",
+        "description": "Red for Easy Mode. Match White Only",
         "hsm": 3,
         "edge_left": 40,
         "edge_right": 136,
