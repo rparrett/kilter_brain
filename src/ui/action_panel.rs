@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_http_client::{prelude::TypedRequest, HttpClient};
+use bevy_http_client::{HttpClient, prelude::TypedRequest};
 use serde::Serialize;
 use std::fmt::Write;
 use uuid::Uuid;
@@ -10,7 +10,7 @@ use crate::{
     kilter_board::{BoardAngle, SelectedClimb},
     kilter_data::{Climb, ClimbFilter, KilterData},
     placement_indicator::PlacementIndicator,
-    ui::{button::button, UiAssets},
+    ui::{UiAssets, button::button},
 };
 
 use super::theme;
@@ -124,10 +124,16 @@ fn clear_button(
     query: Query<&Interaction, (With<ClearButton>, Changed<Interaction>)>,
     mut commands: Commands,
     placement_query: Query<Entity, With<PlacementIndicator>>,
+    mut kilter: ResMut<KilterData>,
+    selected: Res<SelectedClimb>,
 ) {
     if query.iter().any(|i| *i == Interaction::Pressed) {
         for entity in &placement_query {
             commands.entity(entity).despawn();
+        }
+
+        if let Some(climb) = kilter.climbs.get_mut(&selected.0) {
+            climb.frames.clear();
         }
     }
 }
