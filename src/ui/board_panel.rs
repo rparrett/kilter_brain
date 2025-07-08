@@ -5,9 +5,9 @@ use crate::{
     kilter_board::BoardAngle,
     kilter_data::{ClimbFilter, KilterData},
     ui::{
-        button::button,
-        list::{list, ListItemBundles},
         UiAssets,
+        button::button,
+        list::{ListItemBundles, list},
     },
 };
 

@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 
 use std::sync::{
-    mpsc::{Receiver, Sender},
     Mutex,
+    mpsc::{Receiver, Sender},
 };
 use wasm_bindgen::{JsCast, UnwrapThrowExt};
 

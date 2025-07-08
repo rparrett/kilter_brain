@@ -3,7 +3,7 @@ use combine::EasyParser;
 
 use crate::{
     board_connection::WriteToBoard,
-    kilter_data::{placements_and_roles, ClimbFilter, KilterData},
+    kilter_data::{ClimbFilter, KilterData, placements_and_roles},
     placement_indicator::PlacementIndicator,
 };
 
