@@ -16,13 +16,17 @@ const DATA_CHARACTERISTIC: &str = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E";
 // 20 bytes seems to be the default MTU for BLE.
 const BLE_CHUNK_SIZE: usize = 20;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub enum ApiLevel {
     // Not sure which API level the nearby boards are yet
     #[allow(dead_code)]
     Two,
+    #[default]
     Three,
 }
+
+#[derive(Resource, Default)]
+pub struct ConnectedDevice(ApiLevel);
 
 #[derive(Resource)]
 pub struct PollStateTimer(Timer);
@@ -215,7 +219,7 @@ pub fn encode_holds_data(holds: &[(u16, (u8, u8, u8))], api_level: ApiLevel) -> 
         .collect::<Vec<String>>()
         .join(" ");
     info!(
-        "BLE: Encoded packet {:?} ({} bytes): {}",
+        "BLE: Encoded packet ApiLevel::{:?} ({} bytes): {}",
         api_level,
         packet.len(),
         hex_string
@@ -239,6 +243,7 @@ impl Plugin for BlePlugin {
             ),
         );
         app.init_resource::<PollStateTimer>();
+        app.init_resource::<ConnectedDevice>();
     }
 }
 
@@ -248,8 +253,6 @@ fn start_scan_event(mut events: EventReader<StartScan>) {
     }
 
     info!("BLE: start scan requested");
-
-    // Use the Kilter board service UUID defined as a constant
 
     start_scan_with_uuid(ADVERTISING_SERVICE_UUID);
 
@@ -268,8 +271,24 @@ fn stop_scan_event(mut events: EventReader<StopScan>) {
     events.clear();
 }
 
-fn connect_event(mut events: EventReader<Connect>) {
+fn connect_event(
+    mut events: EventReader<Connect>,
+    nearby: Res<NearbyBoards>,
+    mut device: ResMut<ConnectedDevice>,
+) {
     for event in events.read() {
+        if let Some(name) = nearby
+            .0
+            .iter()
+            .find(|b| b.id == event.device_id)
+            .map(|d| &d.name)
+        {
+            match name.split_once('@') {
+                Some((_, "3")) => device.0 = ApiLevel::Three,
+                Some((_, "2")) => device.0 = ApiLevel::Two,
+                _ => {}
+            }
+        }
         connect_to_device(&event.device_id);
         unsafe { ble_stop_scan() };
     }
@@ -282,9 +301,9 @@ fn disconnect_event(mut events: EventReader<Disconnect>) {
     }
 }
 
-fn write_to_board_event(mut events: EventReader<WriteToBoard>) {
+fn write_to_board_event(mut events: EventReader<WriteToBoard>, device: Res<ConnectedDevice>) {
     for event in events.read() {
-        let encoded = encode_holds_data(&event.0, ApiLevel::Three);
+        let encoded = encode_holds_data(&event.0, device.0);
         write_to_characteristic(DATA_SERVICE_UUID, DATA_CHARACTERISTIC, &encoded);
     }
 }
