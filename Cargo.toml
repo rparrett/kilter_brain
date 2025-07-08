@@ -25,6 +25,7 @@ serde_derive = "1.0.196"
 serde_json = "1.0.113"
 uuid = "*"
 webbrowser = "1.0.1"
+names = { version = "0.14.0", default-features = false }
 
 # Disable low-severity logs at compile time for performance.
 log = { version = "0.4", features = [

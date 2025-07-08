@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy_http_client::{HttpClient, prelude::TypedRequest};
+use names::Generator;
 use serde::Serialize;
 use std::fmt::Write;
 use uuid::Uuid;
@@ -149,12 +150,14 @@ fn new_button(
     if query.iter().any(|i| *i == Interaction::Pressed) {
         let id = Uuid::new_v4().to_string();
 
+        let mut generator = Generator::with_naming(names::Name::Numbered);
+
         kilter.climbs.insert(
             id.clone(),
             Climb {
                 uuid: id.clone(),
                 setter_username: "User".to_string(),
-                name: "New Climb".to_string(),
+                name: generator.next().unwrap(),
                 ..default()
             },
         );
