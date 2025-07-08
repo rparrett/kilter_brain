@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use crate::ui::list::ListPlugin;
+
 use self::{
     action_panel::ActionPanelPlugin, board_panel::BoardPanelPlugin, button::ButtonPlugin,
     font::FontPlugin, info_panel::InfoPanelPlugin, nav_panel::NavPanelPlugin,
@@ -11,6 +13,7 @@ mod board_panel;
 mod button;
 mod font;
 mod info_panel;
+mod list;
 mod nav_panel;
 mod net_panel;
 mod search_panel;
@@ -29,6 +32,7 @@ impl Plugin for UiPlugin {
             NetPanelPlugin,
             FontPlugin,
             SearchPanelPlugin,
+            ListPlugin,
         ));
         app.init_resource::<UiAssets>();
     }

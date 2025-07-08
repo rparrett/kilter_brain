@@ -16,3 +16,13 @@ pub const CONTAINER_BG: Srgba = Srgba::new(0., 0., 0., 0.8);
 
 pub const CONTAINER_PADDING: UiRect = UiRect::all(Val::Px(12.0));
 pub const CONTAINER_BORDER_RADIUS: Val = Val::Px(10.0);
+
+pub const LIST_ITEM_PADDING: UiRect = UiRect {
+    top: Val::Px(6.0),
+    bottom: Val::Px(6.0),
+    left: Val::Px(12.0),
+    right: Val::Px(12.0),
+};
+pub const LIST_ITEM_BORDER_COLOR: Srgba =
+    Srgba::new(FONT_COLOR.red, FONT_COLOR.green, FONT_COLOR.blue, 0.05);
+pub const LIST_ITEM_COLOR: Srgba = Srgba::NONE;
