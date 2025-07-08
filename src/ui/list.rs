@@ -14,8 +14,8 @@ struct ListItem;
 
 pub struct ListItemBundles<I, O>
 where
-    I: Bundle + 'static,
-    O: Bundle + 'static,
+    I: Bundle,
+    O: Bundle,
 {
     pub contents: I,
     pub container: O,
@@ -26,9 +26,9 @@ where
     I: IntoIterator<Item = T>,
     I::IntoIter: Send + Sync + 'static,
     F: Fn((usize, T)) -> ListItemBundles<B, C> + Send + Sync + 'static,
-    B: Bundle + 'static,
-    C: Bundle + 'static,
-    T: Send + 'static,
+    B: Bundle,
+    C: Bundle,
+    T: Send,
 {
     let iter = items.into_iter().enumerate().map(move |(i, item)| {
         let ListItemBundles {
