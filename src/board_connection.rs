@@ -73,7 +73,7 @@ impl WriteToBoard {
                     .placement_id_to_led_position
                     .get(placement_id)
                     .or_else(|| {
-                        error!("Position lookup failed: {role_id}");
+                        error!("Position lookup failed: {placement_id}");
                         None
                     })?;
 
