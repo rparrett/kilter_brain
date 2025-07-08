@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{log::LogPlugin, prelude::*};
 
 use kilter_brain::{kilter_data::KilterData, AppPlugin};
 
@@ -23,7 +23,10 @@ fn main() {
 
     App::new()
         .insert_resource(kd)
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(LogPlugin {
+            filter: "kilter_brain=debug".into(),
+            ..default()
+        }))
         .add_plugins(AppPlugin)
         .run();
 }

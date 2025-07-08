@@ -111,11 +111,12 @@ impl KilterData {
             .prepare(
                 "SELECT
                     id, product_id, position,name, full_name, led_color, screen_color
-                FROM placement_roles",
+                FROM placement_roles
+                WHERE product_id = 1",
             )
             .unwrap();
 
-        let placement_roles = stmt
+        let mut placement_roles = stmt
             .query_map([], |row| {
                 Ok((
                     row.get(0)?,
@@ -132,7 +133,32 @@ impl KilterData {
             })
             .unwrap()
             .flatten()
-            .collect();
+            .collect::<HashMap<_, _>>();
+
+        placement_roles.insert(
+            99,
+            PlacementRole {
+                id: 99,
+                product_id: 1,
+                name: "cheat".to_string(),
+                full_name: "Cheat".to_string(),
+                position: 99,
+                led_color: "FF0000".to_string(),
+                screen_color: "FF0000".to_string(),
+            },
+        );
+        placement_roles.insert(
+            98,
+            PlacementRole {
+                id: 98,
+                product_id: 1,
+                name: "match".to_string(),
+                full_name: "Match".to_string(),
+                position: 98,
+                led_color: "FFFFFF".to_string(),
+                screen_color: "FFFFFF".to_string(),
+            },
+        );
 
         let mut stmt = conn
             .prepare(

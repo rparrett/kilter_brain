@@ -8,7 +8,7 @@ use crate::{
     effects::PartyMode,
     gen_api::{GenApiSettings, GeneratedClimb, GeneratedClimbs},
     kilter_board::{BoardAngle, SelectedClimb},
-    kilter_data::{Climb, KilterData},
+    kilter_data::{Climb, ClimbFilter, KilterData},
     placement_indicator::PlacementIndicator,
     ui::{button::button, UiAssets},
 };
@@ -135,6 +135,7 @@ fn clear_button(
 fn new_button(
     query: Query<&Interaction, (With<NewButton>, Changed<Interaction>)>,
     mut kilter: ResMut<KilterData>,
+    mut filter: ResMut<ClimbFilter>,
     mut selected: ResMut<SelectedClimb>,
 ) {
     if query.iter().any(|i| *i == Interaction::Pressed) {
@@ -149,6 +150,10 @@ fn new_button(
                 ..default()
             },
         );
+
+        filter.override_climbs.clear();
+        filter.override_climbs.insert(id.clone());
+        filter.update(&kilter);
 
         selected.0 = id.clone();
     }

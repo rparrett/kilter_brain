@@ -54,18 +54,45 @@ impl WriteToBoard {
         let positions = pr
             .iter()
             .flat_map(|(placement_id, role_id)| {
-                let color = match *role_id {
-                    12 => (0, 255, 0),
-                    13 => (0, 255, 255),
-                    14 => (255, 0, 255),
-                    15 => (255, 165, 0),
-                    _ => (0, 0, 0),
-                };
-                let position = kd.placement_id_to_led_position.get(placement_id)?;
-                Some((*position as u16, color))
+                let hex = kd
+                    .placement_roles
+                    .get(role_id)
+                    .map(|pr| &pr.led_color)
+                    .or_else(|| {
+                        error!("Role lookup failed: {role_id}");
+                        None
+                    })?;
+
+                let rgb = hex_to_rgb(hex)
+                    .map_err(|e| {
+                        error!("Error converting color: {e}");
+                    })
+                    .ok()?;
+
+                let position = kd
+                    .placement_id_to_led_position
+                    .get(placement_id)
+                    .or_else(|| {
+                        error!("Position lookup failed: {role_id}");
+                        None
+                    })?;
+
+                Some((*position as u16, rgb))
             })
             .collect::<Vec<_>>();
 
         Self(positions)
     }
+}
+
+fn hex_to_rgb(hex: &str) -> Result<(u8, u8, u8), &'static str> {
+    if hex.len() != 6 {
+        return Err("Hex string must be 6 characters long");
+    }
+
+    let r = u8::from_str_radix(&hex[0..2], 16).map_err(|_| "Invalid red component")?;
+    let g = u8::from_str_radix(&hex[2..4], 16).map_err(|_| "Invalid green component")?;
+    let b = u8::from_str_radix(&hex[4..6], 16).map_err(|_| "Invalid blue component")?;
+
+    Ok((r, g, b))
 }
