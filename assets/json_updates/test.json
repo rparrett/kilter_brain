@@ -2,8 +2,8 @@
   "PUT": {
     "climbs": [
       {
-        "uuid": "F449D27547F54244AA70BFC8877053B0",
-        "name": "TEST CUSTOM ROLES",
+        "uuid": "cfb9836092ef4e2086184430f2ad2424",
+        "name": "Test",
         "description": "No matching",
         "hsm": 3,
         "edge_left": 40,
@@ -12,14 +12,14 @@
         "edge_top": 136,
         "frames_count": 1,
         "frames_pace": 0,
-        "frames": "p1106r99p1139r98p1162r15p1169r12p1236r13p1283r13p1356r14p1525r15",
+        "frames": "p1529r15p1469r99p1127r15p1296r13p1229r99p1331r99p1256r13p1169r12p1239r99p1501r15p1216r98p1190r12p1228r13p1351r14p1100r15",
         "setter_id": 190965,
         "setter_username": "rob",
         "layout_id": 1,
         "is_draft": false,
         "is_listed": true,
-        "created_at": "2024-03-06 23:31:58.958744",
-        "updated_at": "2024-03-06 23:32:13.038588",
+        "created_at": "2025-07-08 19:31:58.958744",
+        "updated_at": "2025-07-08 19:32:13.038588",
         "angle": 30
       }
     ]
