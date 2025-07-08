@@ -10,7 +10,6 @@ AI route-setting via [`kilter_brain_gen`](https://github.com/rparrett/kilter_bra
 - Add route authoring
   - [X] Edit placements
   - [ ] Edit name, setter name, description, etc.
-- Display difficulty, quality, ascents, etc in UI
 - web: Figure out how to handle pastes when the canvas is focused
 - Add asset / pipeline loading screen
 - Add generic UI toast to show frame parsing errors, network errors, paste results, etc
@@ -22,6 +21,8 @@ AI route-setting via [`kilter_brain_gen`](https://github.com/rparrett/kilter_bra
   Is this even possible? Do delaunay, then djikstras, then find the longest edge of the shortest path?
 - Make the "dude for scale" a ragdoll that can be dragged onto the board
 - BLE: we should determine the API level of the board and use the proper encoding scheme
+- Pare down Bevy features -- we're not going to need gamepad support
+- Make `bevy_inspector_egui` optional
 
 ## To get a recent APK
 
