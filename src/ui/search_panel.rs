@@ -98,7 +98,10 @@ fn update_search_results(
         .iter()
         .filter_map(|uuid| {
             let c = kilter.climbs.get(uuid)?;
-            if c.name.contains(&search_text.0) {
+            if c.name
+                .to_lowercase()
+                .contains(&search_text.0.to_lowercase())
+            {
                 Some((c.name.clone(), c.uuid.clone()))
             } else {
                 None
