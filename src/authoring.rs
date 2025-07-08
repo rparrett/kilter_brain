@@ -103,6 +103,10 @@ fn cycle(
             Some(12),
             // finish
             Some(14),
+            // CUSTOM cheat hold
+            Some(99),
+            // CUSTOM match allowed
+            Some(98),
             None,
         ];
 
