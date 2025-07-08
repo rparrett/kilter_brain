@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use bevy::{platform::collections::HashMap, prelude::*};
 use bevy_simple_prefs::{Prefs, PrefsPlugin as SimplePrefsPlugin, PrefsStatus};
 
@@ -15,7 +17,11 @@ pub struct PrefsPlugin;
 
 impl Plugin for PrefsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(SimplePrefsPlugin::<UserPrefs>::default());
+        app.add_plugins(SimplePrefsPlugin::<UserPrefs> {
+            #[cfg(not(target_arch = "wasm32"))]
+            path: ensure_prefs_dir().expect("Failed to set up prefs storage"),
+            ..default()
+        });
 
         app.add_systems(Update, check_status);
     }
@@ -35,4 +41,14 @@ fn check_status(
         filter.update(&kilter);
         *inserted = true;
     }
+}
+
+fn ensure_prefs_dir() -> Result<PathBuf> {
+    let dir = dirs::config_local_dir()
+        .ok_or("Failed to determine local config directory")?
+        .join("kilter_brain");
+
+    std::fs::create_dir_all(&dir)?;
+
+    Ok(dir.join("prefs.ron"))
 }
