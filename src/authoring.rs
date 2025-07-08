@@ -195,8 +195,6 @@ fn on_paste(
                 ..default()
             });
 
-            // TODO we need a filter mode that is just "show recently generated climbs," or
-            // "most recent (no filter)"
             selected.0 = id.clone();
         }
 

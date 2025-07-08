@@ -72,8 +72,6 @@ fn handle_response(
                 },
             );
 
-            // TODO we need a filter mode that is just "show recently generated climbs," or
-            // "most recent (no filter)"
             selected.0 = generated_climb.uuid.clone();
             filter.override_climbs.insert(generated_climb.uuid.clone());
         }
