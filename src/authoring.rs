@@ -125,16 +125,23 @@ fn cycle(
 
         // Update placement in hashmap
 
-        let entry = placements
-            .entry(closest_placement_id)
-            .or_insert(roles.first().unwrap().unwrap());
+        let mut new_placement = false;
+        let entry = placements.entry(closest_placement_id).or_insert_with(|| {
+            new_placement = true;
+            roles.first().unwrap().unwrap()
+        });
         let current = *entry;
         let current_ind = roles.iter().position(|r| *r == Some(current)).unwrap();
 
-        match roles.iter().cycle().nth(current_ind + 1).unwrap() {
-            Some(next) => *entry = *next,
-            None => {
-                placements.remove(&closest_placement_id);
+        if !new_placement {
+            match roles.iter().cycle().nth(current_ind + 1).unwrap() {
+                Some(next) => {
+                    info!("next: {next}");
+                    *entry = *next
+                }
+                None => {
+                    placements.remove(&closest_placement_id);
+                }
             }
         }
 
