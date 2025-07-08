@@ -93,7 +93,7 @@ fn update_search_results(
     // Despawn existing search result entities
     commands.entity(panel_entity).despawn_related::<Children>();
 
-    // TODO maybe should probably search filtered climbs, not all climbs
+    // TODO probably should search filtered climbs, not all climbs
     let results = kilter.search_by_name(&search_text.0);
     if results.is_empty() {
         return;

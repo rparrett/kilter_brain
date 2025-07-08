@@ -516,6 +516,8 @@ fn weighted_rating(avg_rating: f32, num_ratings: u32, min_ratings: u32, global_a
 }
 
 // TODO can we parse into a HashMap<u32, u32>?
+// TODO this is probably too much unjustified complexity. The format is simple enough
+// that we don't really need fancy parse errors.
 pub fn placements_and_roles<'a, I>() -> impl Parser<I, Output = Vec<(u32, u32)>>
 where
     I: RangeStream<Token = char, Range = &'a str>,

@@ -14,7 +14,6 @@ impl Plugin for NavPlugin {
 
 fn setup(mut commands: Commands, data: Res<KilterData>, angle: Res<BoardAngle>) {
     let filter = ClimbFilter::new(angle.0, &data);
-    // TODO handle empty data
     commands.insert_resource(SelectedClimb(
         filter.filtered_climbs.get_index(0).unwrap().clone(),
     ));
