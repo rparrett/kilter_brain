@@ -16,7 +16,7 @@ impl Plugin for BoardConnectionPlugin {
     }
 }
 
-#[derive(Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq)]
 pub struct BoardDevice {
     pub name: String,
     pub id: String,
