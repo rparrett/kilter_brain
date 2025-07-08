@@ -4,7 +4,11 @@ use crate::{
     board_connection::{BoardConnection, Connect, Disconnect, NearbyBoards, StartScan, StopScan},
     kilter_board::BoardAngle,
     kilter_data::{ClimbFilter, KilterData},
-    ui::{button::button, UiAssets},
+    ui::{
+        button::button,
+        list::{list, ListItemBundles},
+        UiAssets,
+    },
 };
 
 use super::theme;
@@ -71,13 +75,11 @@ fn setup_nav_panel(mut commands: Commands, handles: Res<UiAssets>) {
         Name::new("NearbyBoardsPanel"),
         NearbyBoardsPanel,
         Node {
-            flex_direction: FlexDirection::Column,
             position_type: PositionType::Absolute,
             top: Val::Px(60.),
             left: Val::Px(0.),
-            width: Val::Px(300.),
-            padding: theme::CONTAINER_PADDING,
-            row_gap: Val::Px(5.),
+            width: Val::Px(200.),
+            padding: UiRect::vertical(theme::CONTAINER_PADDING.top),
             ..default()
         },
         BorderRadius::right(theme::CONTAINER_BORDER_RADIUS),
@@ -163,6 +165,7 @@ fn nearby_boards(
     nearby_boards: Res<NearbyBoards>,
     board_connection: Res<BoardConnection>,
     mut panels: Query<(Entity, &mut Node), With<NearbyBoardsPanel>>,
+    handles: Res<UiAssets>,
 ) {
     if !nearby_boards.is_changed() && !board_connection.is_changed() {
         return;
@@ -183,29 +186,26 @@ fn nearby_boards(
 
     commands.entity(entity).despawn_related::<Children>();
 
-    commands.entity(entity).with_children(|parent| {
-        for board in &nearby_boards.0 {
-            let display_name = board.name.split(&['#', '@'][..]).next().unwrap();
-            parent.spawn((
-                Button,
-                ConnectButton(board.id.clone()),
-                Node {
-                    padding: theme::CONTAINER_PADDING,
+    if nearby_boards.0.is_empty() {
+        return;
+    }
+
+    let font_handle = handles.font.clone();
+    let list = list(nearby_boards.0.clone(), move |(_i, result)| {
+        ListItemBundles {
+            contents: (
+                Text::new(result.name),
+                TextFont {
+                    font: font_handle.clone(),
+                    font_size: theme::FONT_SIZE_SM,
                     ..default()
                 },
-                BorderRadius::all(theme::CONTAINER_BORDER_RADIUS),
-                BackgroundColor(theme::CONTAINER_BG.into()),
-                children![(
-                    Text::new(display_name),
-                    TextFont {
-                        font_size: theme::FONT_SIZE_SM,
-                        ..default()
-                    },
-                    TextColor(theme::FONT_COLOR.into()),
-                )],
-            ));
+            ),
+            container: (ConnectButton(result.id)),
         }
     });
+
+    commands.entity(entity).with_child(list);
 }
 
 fn connect_button(

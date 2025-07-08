@@ -4,7 +4,9 @@ use bevy_simple_text_input::{TextInput, TextInputTextColor, TextInputTextFont, T
 use super::theme;
 
 use crate::kilter_board::ChangeClimbEvent;
-use crate::kilter_data::KilterData;
+use crate::kilter_data::{ClimbFilter, KilterData};
+use crate::ui::list::{list, ListItemBundles};
+use crate::ui::UiAssets;
 
 #[derive(Component)]
 struct SearchField;
@@ -35,8 +37,8 @@ fn setup_search_ui(mut commands: Commands) {
                 top: Val::Px(60.),
                 right: Val::Px(0.),
                 width: Val::Px(200.),
-                padding: theme::CONTAINER_PADDING,
                 row_gap: Val::Px(5.),
+                padding: UiRect::vertical(theme::CONTAINER_PADDING.top),
                 ..default()
             },
             BorderRadius::left(theme::CONTAINER_BORDER_RADIUS),
@@ -44,7 +46,10 @@ fn setup_search_ui(mut commands: Commands) {
         ))
         .with_children(|parent| {
             parent.spawn((
-                Node::default(),
+                Node {
+                    margin: UiRect::horizontal(theme::CONTAINER_PADDING.left),
+                    ..default()
+                },
                 TextInput,
                 TextInputTextFont(TextFont {
                     font_size: theme::FONT_SIZE,
@@ -53,23 +58,18 @@ fn setup_search_ui(mut commands: Commands) {
                 TextInputTextColor(theme::FONT_COLOR.into()),
                 SearchField,
             ));
-            parent.spawn((
-                Node {
-                    flex_direction: FlexDirection::Column,
-                    row_gap: Val::Px(5.),
-                    ..default()
-                },
-                SearchResultsPanel,
-            ));
+            parent.spawn((Node::default(), SearchResultsPanel));
         });
 }
 
 fn update_search_results(
     search_field: Query<&TextInputValue, (With<SearchField>, Changed<TextInputValue>)>,
     kilter: Res<KilterData>,
+    filter: Res<ClimbFilter>,
     results_panel: Query<Entity, With<SearchResultsPanel>>,
     mut search_panel: Query<&mut Node, With<SearchPanel>>,
     mut commands: Commands,
+    handles: Res<UiAssets>,
 ) {
     let Ok(search_text) = search_field.single() else {
         return;
@@ -93,39 +93,38 @@ fn update_search_results(
     // Despawn existing search result entities
     commands.entity(panel_entity).despawn_related::<Children>();
 
-    // TODO probably should search filtered climbs, not all climbs
-    let results = kilter.search_by_name(&search_text.0);
+    let results = filter
+        .filtered_climbs
+        .iter()
+        .filter_map(|uuid| {
+            let c = kilter.climbs.get(uuid)?;
+            if c.name.contains(&search_text.0) {
+                Some((c.name.clone(), c.uuid.clone()))
+            } else {
+                None
+            }
+        })
+        .take(15)
+        .collect::<Vec<_>>();
+
     if results.is_empty() {
         return;
     }
 
-    for (_climb_idx, climb) in results.iter().take(10) {
-        let result = commands
-            .spawn((
-                Button,
-                Node {
-                    width: Val::Percent(100.),
-                    padding: theme::CONTAINER_PADDING,
-                    ..default()
-                },
-                BorderRadius::all(theme::CONTAINER_BORDER_RADIUS),
-                BackgroundColor(theme::CONTAINER_BG.into()),
-                SearchResultItem(climb.uuid.clone()),
-            ))
-            .with_children(|parent| {
-                parent.spawn((
-                    Text::new(&climb.name),
-                    TextFont {
-                        font_size: theme::FONT_SIZE_SM,
-                        ..default()
-                    },
-                    TextColor(theme::FONT_COLOR.into()),
-                ));
-            })
-            .id();
+    let font_handle = handles.font.clone();
+    let list = list(results, move |(_i, result)| ListItemBundles {
+        contents: (
+            Text::new(result.0),
+            TextFont {
+                font: font_handle.clone(),
+                font_size: theme::FONT_SIZE_SM,
+                ..default()
+            },
+        ),
+        container: (SearchResultItem(result.1)),
+    });
 
-        commands.entity(panel_entity).add_child(result);
-    }
+    commands.entity(panel_entity).with_child(list);
 }
 
 fn handle_search_result_click(
