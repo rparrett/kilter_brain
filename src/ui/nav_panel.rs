@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::{
     kilter_board::ChangeClimbEvent,
     kilter_data::{ClimbFilter, KilterData},
-    ui::{button::button, UiAssets},
+    ui::{UiAssets, button::button},
 };
 
 use super::theme;
@@ -144,8 +144,8 @@ fn grade_button(
         text.0.clone_from(&label);
     }
 
-    filter.filter_min_difficulty = button.0.unwrap_or(0);
-    filter.filter_max_difficulty = button.0.unwrap_or(33);
+    filter.filter_min_difficulty = button.0;
+    filter.filter_max_difficulty = button.0;
     filter.update(&data);
 }
 

@@ -6,11 +6,11 @@ use serde_derive::{Deserialize, Serialize};
 use serde_json::Value;
 use std::io::Read;
 #[cfg(not(target_arch = "wasm32"))]
-use std::{fs::read_dir, fs::File, io, io::BufReader, path::Path};
+use std::{fs::File, fs::read_dir, io, io::BufReader, path::Path};
 
 use combine::error::ParseError;
 use combine::stream::RangeStream;
-use combine::{many1, parser::char::digit, Parser};
+use combine::{Parser, many1, parser::char::digit};
 
 #[cfg(not(any(target_arch = "wasm32")))]
 use rusqlite::{Connection, Result};
@@ -449,7 +449,7 @@ pub enum ClimbSort {
     Best,
 }
 
-#[derive(Resource)]
+#[derive(Resource, Default)]
 pub struct ClimbFilter {
     /// The set of climb UUIDs matching the current filters.
     /// TODO this should be made private.
@@ -457,21 +457,9 @@ pub struct ClimbFilter {
     /// If not empty, only show climbs from this set instead of doing normal filtering.
     pub override_climbs: HashSet<String>,
     pub angle: u32,
-    pub filter_min_difficulty: u32,
-    pub filter_max_difficulty: u32,
+    pub filter_min_difficulty: Option<u32>,
+    pub filter_max_difficulty: Option<u32>,
     pub sort: ClimbSort,
-}
-impl Default for ClimbFilter {
-    fn default() -> Self {
-        Self {
-            filtered_climbs: Default::default(),
-            override_climbs: Default::default(),
-            angle: Default::default(),
-            filter_min_difficulty: 0,
-            filter_max_difficulty: 33,
-            sort: Default::default(),
-        }
-    }
 }
 impl ClimbFilter {
     pub fn new(angle: u32, kilter_data: &KilterData) -> Self {
@@ -496,33 +484,42 @@ impl ClimbFilter {
                 continue;
             }
 
-            // TODO how can we avoid the `uuid` allocation here?
-            // TODO we need to be able to optionally skip difficulty filtering
-            // to show "open projects"
-            let Some(stats) = kilter_data
-                .uuid_angle_to_stats
-                .get(&(uuid.clone(), self.angle))
-            else {
-                continue;
-            };
+            const ALLOW_OPEN_PROJECTS: bool = true;
 
-            if stats.display_difficulty < self.filter_min_difficulty as f32
-                || stats.display_difficulty > self.filter_max_difficulty as f32
-            {
-                continue;
+            // TODO how can we avoid the `uuid` allocation here? `Cow`? Custom type that impls Hash?
+            let maybe_stats = kilter_data
+                .uuid_angle_to_stats
+                .get(&(uuid.clone(), self.angle));
+
+            match (ALLOW_OPEN_PROJECTS, maybe_stats) {
+                (_, Some(stats)) => {
+                    if let Some(min) = self.filter_min_difficulty
+                        && stats.display_difficulty < min as f32
+                    {
+                        continue;
+                    }
+                    if let Some(max) = self.filter_max_difficulty
+                        && stats.display_difficulty > max as f32
+                    {
+                        continue;
+                    }
+                }
+                (false, None) => continue,
+                (true, None) => {}
             }
 
             self.filtered_climbs.insert(uuid.clone());
         }
 
         self.filtered_climbs.sort_by_cached_key(|climb| {
-            let (rating, ascents) = kilter_data
+            let weighted_rating = kilter_data
                 .uuid_angle_to_stats
                 .get(&(climb.clone(), self.angle))
-                .map(|s| (s.quality_average, s.ascensionist_count))
-                .unwrap_or((0.0, 0));
-            // TODO global_avg
-            FloatOrd(-weighted_rating(rating, ascents, 10, 2.5))
+                // TODO global_avg
+                .map(|s| weighted_rating(s.quality_average, s.ascensionist_count, 10, 2.5))
+                .unwrap_or(f32::MIN);
+
+            FloatOrd(-weighted_rating)
         });
     }
 }
