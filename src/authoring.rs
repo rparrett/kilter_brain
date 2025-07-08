@@ -141,7 +141,7 @@ fn cycle(
         // Update frames
 
         let frames = placements.iter().fold(String::new(), |mut acc, (k, v)| {
-            acc.push_str(&format!("p{}r{}", k, v));
+            acc.push_str(&format!("p{k}r{v}"));
             acc
         });
 
