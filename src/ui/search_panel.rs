@@ -5,8 +5,8 @@ use super::theme;
 
 use crate::kilter_board::ChangeClimbEvent;
 use crate::kilter_data::{ClimbFilter, KilterData};
-use crate::ui::list::{list, ListItemBundles};
 use crate::ui::UiAssets;
+use crate::ui::list::{ListItemBundles, list};
 
 #[derive(Component)]
 struct SearchField;

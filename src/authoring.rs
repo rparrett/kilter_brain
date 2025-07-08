@@ -12,7 +12,7 @@ use crate::{
     clipboard::PasteEvent,
     kilter_board::{Board, ChangeClimbEvent, KilterSettings, SelectedClimb},
     kilter_data::{
-        parse_placements_and_roles, placements_and_roles, Climb, ClimbFilter, KilterData,
+        Climb, ClimbFilter, KilterData, parse_placements_and_roles, placements_and_roles,
     },
 };
 

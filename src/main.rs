@@ -1,6 +1,6 @@
 use bevy::{log::LogPlugin, prelude::*};
 
-use kilter_brain::{kilter_data::KilterData, AppPlugin};
+use kilter_brain::{AppPlugin, kilter_data::KilterData};
 
 fn main() {
     // Just embed some minimal json on the web for now. In the future we will want to
@@ -16,6 +16,9 @@ fn main() {
     let kd = {
         let mut kd = KilterData::from_sqlite("../kilter_brain_data/db.sqlite3").unwrap();
         if let Err(e) = kd.json_update_files("../kilter_brain_data/api_json") {
+            eprintln!("Failed to load JSON updates. {e:?}");
+        };
+        if let Err(e) = kd.json_update_files("./assets/json_updates") {
             eprintln!("Failed to load JSON updates. {e:?}");
         };
         kd

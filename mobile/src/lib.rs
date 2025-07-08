@@ -22,13 +22,17 @@ fn main() {
         .map(|path| path.parent().map(ToOwned::to_owned).unwrap())
         .unwrap()
         .join("assets/db.sqlite3");
+    let json_updates_path = env::current_exe()
+        .map(|path| path.parent().map(ToOwned::to_owned).unwrap())
+        .unwrap()
+        .join("assets/json_updates");
 
     let kd = {
-        let mut kd = KilterData::from_sqlite(db_path.to_str().unwrap());
-        if let Err(ref e) = kd {
+        let mut kd = KilterData::from_sqlite(db_path.to_str().unwrap()).unwrap();
+        if let Err(e) = kd.json_update_files(json_updates_path) {
             eprintln!("Failed to load JSON updates. {e:?}");
         };
-        kd.unwrap()
+        kd
     };
 
     App::new()
