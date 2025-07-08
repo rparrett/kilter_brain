@@ -1255,6 +1255,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_simple_prefs"
+version = "0.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "546b3114a15d889903a7cb05d1b8e802a00b0a7d85b093ad8911e6fe1034b49a"
+dependencies = [
+ "bevy",
+ "bevy_simple_prefs_derive",
+ "ron",
+ "serde",
+ "web-sys",
+]
+
+[[package]]
+name = "bevy_simple_prefs_derive"
+version = "0.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "405745f38cba0e7a2257b356fb3b766aa80708084b76512ca27883c2442812c9"
+dependencies = [
+ "bevy",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "bevy_simple_text_input"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3266,6 +3290,7 @@ dependencies = [
  "bevy",
  "bevy-inspector-egui",
  "bevy_http_client",
+ "bevy_simple_prefs",
  "bevy_simple_text_input",
  "clipboard",
  "combine",

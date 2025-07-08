@@ -7,10 +7,17 @@ edition = "2024"
 members = ["mobile"]
 
 [dependencies]
-bevy = { version = "0.16" }
-bevy-inspector-egui = "0.31"
+bevy-inspector-egui = { version = "0.31", default-features = false, features = [
+    "bevy_pbr",
+    "bevy_image",
+    "bevy_render",
+    "bevy_core_pipeline",
+    "egui_clipboard",
+] }
+bevy = "0.16"
 bevy_http_client = "0.8"
 bevy_simple_text_input = "0.11"
+bevy_simple_prefs = "0.6.2"
 combine = "4.6.6"
 indexmap = "2.2.6"
 serde = "1.0.196"

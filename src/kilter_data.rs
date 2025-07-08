@@ -414,7 +414,7 @@ pub struct PlacementRole {
     pub screen_color: String,
 }
 
-#[derive(Serialize, Deserialize, Default, Debug, Clone)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone, Reflect, Eq, PartialEq)]
 pub struct Climb {
     pub uuid: String,
     pub name: String,

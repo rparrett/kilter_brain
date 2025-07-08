@@ -10,7 +10,10 @@ use pan_cam::PanCamPlugin;
 use placement_indicator::PlacementIndicatorPlugin;
 use ui::UiPlugin;
 
-use crate::{board_connection::BoardConnectionPlugin, effects::EffectsPlugin, nav::NavPlugin};
+use crate::{
+    board_connection::BoardConnectionPlugin, effects::EffectsPlugin, nav::NavPlugin,
+    prefs::PrefsPlugin,
+};
 
 mod authoring;
 pub mod board_connection;
@@ -24,6 +27,7 @@ pub mod kilter_data;
 mod nav;
 mod pan_cam;
 mod placement_indicator;
+mod prefs;
 mod ui;
 
 pub struct AppPlugin;
@@ -47,6 +51,7 @@ impl Plugin for AppPlugin {
             BoardConnectionPlugin,
             EffectsPlugin,
             NavPlugin,
+            PrefsPlugin,
         ));
 
         // Third-party Plugins

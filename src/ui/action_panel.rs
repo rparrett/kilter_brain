@@ -10,6 +10,7 @@ use crate::{
     kilter_board::{BoardAngle, SelectedClimb},
     kilter_data::{Climb, ClimbFilter, KilterData},
     placement_indicator::PlacementIndicator,
+    prefs::UserClimbs,
     ui::{UiAssets, button::button},
 };
 
@@ -19,6 +20,8 @@ pub struct ActionPanelPlugin;
 
 #[derive(Component)]
 struct NewButton;
+#[derive(Component)]
+struct SaveButton;
 #[derive(Component)]
 struct ClearButton;
 #[derive(Component)]
@@ -46,6 +49,7 @@ impl Plugin for ActionPanelPlugin {
             (
                 clear_button,
                 new_button,
+                save_button,
                 gen_fill_button,
                 gen_new_button,
                 publish_button,
@@ -82,41 +86,39 @@ fn setup_buttons_panel(mut commands: Commands, handles: Res<UiAssets>) {
         ))
         .id();
 
-    let new_button = commands
-        .spawn((button("New", handles.font.clone()), NewButton))
-        .id();
-    let clear_button = commands
-        .spawn((button("Clear", handles.font.clone()), ClearButton))
-        .id();
-    let gen_button = commands
-        .spawn((button("Gen Fill", handles.font.clone()), GenButton))
-        .id();
-    let gen_new_button = commands
-        .spawn((button("Gen New", handles.font.clone()), GenNewButton))
-        .id();
-    let publish_button = commands
-        .spawn((button("Publish", handles.font.clone()), PublishButton))
-        .id();
-    let open_climb_button = commands
-        .spawn((button("Open", handles.font.clone()), OpenClimbButton))
-        .id();
-    let party_mode_button = commands
-        .spawn((
-            button("\u{E347}", handles.symbol_font.clone()),
-            PartyModeButton,
-        ))
-        .id();
+    let spacer = (
+        Name::new("Spacer"),
+        Node {
+            padding: UiRect::horizontal(Val::Px(6.0)),
+            ..default()
+        },
+    );
 
-    commands.entity(container).add_children(&[
-        new_button,
-        clear_button,
-        gen_button,
-        gen_new_button,
-        publish_button,
-        open_climb_button,
-        party_mode_button,
-    ]);
+    let new_button = (button("\u{E644}", handles.font.clone()), NewButton);
+    let save_button = (button("\u{E151}", handles.symbol_font.clone()), SaveButton);
+    let clear_button = (button("\u{E28F}", handles.font.clone()), ClearButton);
+    let gen_button = (button("Gen Fill", handles.font.clone()), GenButton);
+    let gen_new_button = (button("Gen New", handles.font.clone()), GenNewButton);
+    let publish_button = (button("Publish", handles.font.clone()), PublishButton);
+    let open_climb_button = (button("Open", handles.font.clone()), OpenClimbButton);
+    let party_mode_button = (
+        button("\u{E347}", handles.symbol_font.clone()),
+        PartyModeButton,
+    );
 
+    commands.entity(container).with_children(|parent| {
+        parent.spawn(new_button);
+        parent.spawn(save_button);
+        parent.spawn(clear_button);
+        parent.spawn(spacer.clone());
+        parent.spawn(gen_button);
+        parent.spawn(gen_new_button);
+        parent.spawn(spacer.clone());
+        parent.spawn(publish_button);
+        parent.spawn(open_climb_button);
+        parent.spawn(spacer.clone());
+        parent.spawn(party_mode_button);
+    });
     commands.entity(root).add_child(container);
 }
 
@@ -162,6 +164,21 @@ fn new_button(
         filter.update(&kilter);
 
         selected.0 = id.clone();
+    }
+}
+
+fn save_button(
+    query: Query<&Interaction, (With<SaveButton>, Changed<Interaction>)>,
+    mut user_climbs: ResMut<UserClimbs>,
+    kilter: Res<KilterData>,
+    selected: Res<SelectedClimb>,
+) {
+    if query.iter().any(|i| *i == Interaction::Pressed) {
+        let Some(climb) = kilter.climbs.get(&selected.0) else {
+            return;
+        };
+
+        user_climbs.0.insert(climb.uuid.clone(), climb.clone());
     }
 }
 

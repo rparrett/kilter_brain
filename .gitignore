@@ -4,3 +4,4 @@ wasm/bevy_game.js
 wasm/bevy_game_bg.wasm
 .DS_Store
 assets/db.sqlite3
+kilter_brain_prefs.ron
