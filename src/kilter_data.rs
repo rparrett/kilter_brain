@@ -458,9 +458,13 @@ impl Default for ClimbFilter {
 }
 impl ClimbFilter {
     pub fn new(angle: u32, kilter_data: &KilterData) -> Self {
-        let mut cf = Self::default();
-        cf.angle = angle;
-        cf.update(&kilter_data);
+        let mut cf = Self {
+            angle,
+            ..Default::default()
+        };
+
+        cf.update(kilter_data);
+
         cf
     }
     pub fn update(&mut self, kilter_data: &KilterData) {

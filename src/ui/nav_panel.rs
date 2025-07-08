@@ -144,14 +144,8 @@ fn grade_button(
         text.0.clone_from(&label);
     }
 
-    filter.filter_min_difficulty = match button.0 {
-        Some(d) => d,
-        None => 0,
-    };
-    filter.filter_max_difficulty = match button.0 {
-        Some(d) => d,
-        None => 33,
-    };
+    filter.filter_min_difficulty = button.0.unwrap_or(0);
+    filter.filter_max_difficulty = button.0.unwrap_or(33);
     filter.update(&data);
 }
 
