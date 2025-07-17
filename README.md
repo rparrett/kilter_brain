@@ -1,5 +1,9 @@
 # Kilter Brain
 
+Archived. This project grew beyond its original purpose into something that I don't think Bevy is a good choice for.
+
+## Original README
+
 An alternative Kilter Board climb editor / viewer.
 
 AI route-setting via [`kilter_brain_gen`](https://github.com/rparrett/kilter_brain_gen).
